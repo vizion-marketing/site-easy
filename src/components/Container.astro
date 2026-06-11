@@ -1,0 +1,19 @@
+---
+// Conteneur standard du site : largeur max 1440px (token --container), centré,
+// avec des gouttières horizontales responsives. À utiliser pour wrapper tout
+// contenu de section.
+interface Props {
+  class?: string;
+}
+
+const { class: className = "" } = Astro.props;
+---
+
+<div
+  class:list={[
+    "mx-auto w-full max-w-[var(--container)] px-6 sm:px-8",
+    className,
+  ]}
+>
+  <slot />
+</div>

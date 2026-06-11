@@ -1,0 +1,113 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Navbar from "../components/Navbar.tsx";
+import Hero from "../components/Hero.tsx";
+import Franchises from "../components/Franchises.tsx";
+import { sanityClient } from "sanity:client";
+import { urlFor } from "../sanity/lib/image";
+import { FRANCHISEES_QUERY, ALL_TOURS_QUERY } from "../sanity/lib/queries";
+
+type FranchiseeDoc = {
+  _id: string;
+  prenom?: string;
+  nom?: string;
+  zone?: string;
+  photo?: unknown;
+  pageLink?: string;
+};
+
+type TourDoc = {
+  _id: string;
+  title?: string;
+  slug?: { current?: string };
+  client?: string;
+  location?: string;
+  category?: string;
+  coverImage?: unknown;
+  tourUrl?: string;
+};
+
+// Récupération des franchisés depuis Sanity (tolérante : si la config Sanity
+// n'est pas prête ou qu'il n'y a aucun document, on bascule sur des placeholders).
+let docs: FranchiseeDoc[] = [];
+try {
+  docs = await sanityClient.fetch<FranchiseeDoc[]>(FRANCHISEES_QUERY);
+} catch (err) {
+  console.warn("[index] Échec du fetch Sanity des franchisés — placeholders utilisés.", err);
+}
+
+const franchisees = (docs ?? []).map((d) => ({
+  name: [d.prenom, d.nom].filter(Boolean).join(" "),
+  zone: d.zone ?? "",
+  imageUrl: d.photo
+    ? urlFor(d.photo).width(600).height(800).fit("crop").url()
+    : null,
+  pageLink: d.pageLink,
+}));
+
+// Données de démonstration tant qu'aucun franchisé n'est saisi dans le Studio (/admin).
+const placeholderFranchisees = [
+  { name: "Maya Linwood", zone: "Île-de-France", imageUrl: "https://i.pravatar.cc/600?img=5", pageLink: "#" },
+  { name: "Ethan Park", zone: "Auvergne-Rhône-Alpes", imageUrl: "https://i.pravatar.cc/600?img=12", pageLink: "#" },
+  { name: "Aïsha Reynolds", zone: "Provence-Alpes-Côte d'Azur", imageUrl: "https://i.pravatar.cc/600?img=49", pageLink: "#" },
+  { name: "Lucas Moreau", zone: "Nouvelle-Aquitaine", imageUrl: "https://i.pravatar.cc/600?img=33", pageLink: "#" },
+  { name: "Sophie Dubois", zone: "Hauts-de-France", imageUrl: "https://i.pravatar.cc/600?img=45", pageLink: "#" },
+  { name: "Diego Herrera", zone: "Occitanie", imageUrl: "https://i.pravatar.cc/600?img=60", pageLink: "#" },
+  { name: "Camille Bernard", zone: "Bretagne", imageUrl: "https://i.pravatar.cc/600?img=24", pageLink: "#" },
+  { name: "Noah Lefebvre", zone: "Grand Est", imageUrl: "https://i.pravatar.cc/600?img=15", pageLink: "#" },
+  { name: "Léa Martin", zone: "Pays de la Loire", imageUrl: "https://i.pravatar.cc/600?img=32", pageLink: "#" },
+  { name: "Hugo Rossi", zone: "Normandie", imageUrl: "https://i.pravatar.cc/600?img=8", pageLink: "#" },
+  { name: "Chloé Faure", zone: "Bourgogne-Franche-Comté", imageUrl: "https://i.pravatar.cc/600?img=20", pageLink: "#" },
+  { name: "Karim Benali", zone: "Centre-Val de Loire", imageUrl: "https://i.pravatar.cc/600?img=52", pageLink: "#" },
+];
+
+const displayFranchisees = franchisees.length ? franchisees : placeholderFranchisees;
+
+// Récupération des dernières visites virtuelles depuis Sanity (tolérante :
+// placeholders de démo si la config Sanity n'est pas prête ou s'il n'y a aucune visite).
+let tourDocs: TourDoc[] = [];
+try {
+  tourDocs = await sanityClient.fetch<TourDoc[]>(ALL_TOURS_QUERY);
+} catch (err) {
+  console.warn("[index] Échec du fetch Sanity des visites — placeholders utilisés.", err);
+}
+
+const tours = (tourDocs ?? []).slice(0, 8).map((t) => ({
+  title: t.title ?? "Visite virtuelle",
+  client: t.client,
+  location: t.location,
+  category: t.category,
+  imageUrl: t.coverImage
+    ? urlFor(t.coverImage).width(640).height(400).fit("crop").url()
+    : null,
+  // Pas encore de route /visites/[slug] : on pointe sur l'embed s'il existe, sinon ancre.
+  href: t.tourUrl ?? "#visites",
+}));
+
+// Données de démonstration tant qu'aucune visite n'est saisie dans le Studio (/admin).
+const placeholderTours = [
+  { title: "Villa Horizon", client: "Barnes", location: "Cannes", category: "Immobilier", imageUrl: "https://picsum.photos/seed/villa/640/400", href: "#visites" },
+  { title: "Hôtel Le Belvédère", client: "Groupe Accor", location: "Annecy", category: "Hôtellerie", imageUrl: "https://picsum.photos/seed/hotel/640/400", href: "#visites" },
+  { title: "Showroom Atelier 9", client: "Maison Dôme", location: "Paris 8e", category: "Retail", imageUrl: "https://picsum.photos/seed/showroom/640/400", href: "#visites" },
+  { title: "Musée des Arts", client: "Ville de Lyon", location: "Lyon", category: "Culture", imageUrl: "https://picsum.photos/seed/musee/640/400", href: "#visites" },
+  { title: "Résidence Les Pins", client: "Nexity", location: "Bordeaux", category: "Immobilier", imageUrl: "https://picsum.photos/seed/residence/640/400", href: "#visites" },
+  { title: "Camping Bord de Mer", client: "Huttopia", location: "Biarritz", category: "Tourisme", imageUrl: "https://picsum.photos/seed/camping/640/400", href: "#visites" },
+  { title: "Espace Coworking Nova", client: "Wojo", location: "Nantes", category: "Bureaux", imageUrl: "https://picsum.photos/seed/coworking/640/400", href: "#visites" },
+  { title: "Boutique Flagship", client: "Le Slip Français", location: "Marseille", category: "Retail", imageUrl: "https://picsum.photos/seed/boutique/640/400", href: "#visites" },
+];
+
+const displayTours = tours.length ? tours : placeholderTours;
+
+// Chiffres-clés (marketing) — à ajuster ou à brancher sur siteSettings plus tard.
+const stats = [
+  { value: "150+", label: "Franchisés" },
+  { value: "42", label: "Villes" },
+  { value: "98%", label: "Satisfaction" },
+];
+---
+
+<BaseLayout>
+  <Navbar client:load tours={displayTours} />
+  <Hero client:visible />
+  <Franchises client:visible franchisees={displayFranchisees} stats={stats} />
+</BaseLayout>

@@ -1,0 +1,32 @@
+---
+import "@fontsource-variable/jost";
+import "@fontsource-variable/manrope";
+import "@fontsource-variable/inter";
+import "@carbon/icons-motion/dist/index.css";
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "easyvirtual.tours — Visites virtuelles 360° immersives",
+  description = "Créez et diffusez des visites virtuelles 360° immersives, simplement. easyvirtual.tours met en valeur vos espaces : immobilier, hôtellerie, commerce.",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="fr" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+  </head>
+  <body class="min-h-full flex flex-col bg-background text-foreground antialiased">
+    <slot />
+  </body>
+</html>

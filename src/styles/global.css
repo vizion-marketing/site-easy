@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+
+  /* Layout — largeur de conteneur standard */
+  --container: 1440px;
+
+  /* Brand — orange easyJet */
+  --brand: #ff6600;
+  --brand-dark: #e85c00;
+  --brand-light: #ff8533;
+  --brand-tint: #fff4ec;
+
+  /* Neutres */
+  --muted: #f6f6f7;
+  --muted-foreground: #6b7280;
+  --border: #e5e7eb;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-light: var(--brand-light);
+  --color-brand-tint: var(--brand-tint);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+
+  /* Corps : Inter (variable) */
+  --font-sans:
+    "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Titres : test en Futura (système macOS) → fallback Jost ailleurs */
+  --font-heading:
+    "Futura", "Futura PT", "Jost Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Les titres utilisent Manrope par défaut. */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+/* Icônes animées Carbon (@carbon/icons-motion).
+   Leur encre est figée en noir (certains tracés ont fill/stroke explicites) :
+   impossible de fiabiliser via `currentColor` sans remplir les contours creux.
+   On les teinte donc via `filter` (agit sur l'encre noire, préserve le transparent).
+   Filtres calculés pour matcher exactement la couleur cible. */
+.cds-motion-icon {
+  display: inline-flex;
+}
+.cds-motion-icon > div {
+  display: inline-flex;
+  line-height: 0;
+}
+/* Orange marque #FF6600 (rendu exact). NB : pas de `saturate(100%)` initial
+   (no-op) — le minifier le réduit à `saturate()` invalide et casse le filtre. */
+.cds-motion-icon--brand svg {
+  filter: brightness(0) invert(40%) sepia(94%) saturate(2302%) hue-rotate(2deg)
+    brightness(105%) contrast(102%);
+}
+/* Blanc pur */
+.cds-motion-icon--white svg {
+  filter: brightness(0) invert(1);
+}
+/* Gris neutre (état au repos des icônes de menu, ~gray-500). */
+.cds-motion-icon--muted svg {
+  filter: brightness(0) invert(55%);
+}
+
+/* Marquee du bandeau de logos (intégré en bas du hero). */
+.marquee {
+  animation: marquee 35s linear infinite;
+  will-change: transform;
+}
+.marquee:hover {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    /* -50% = la largeur d'un seul jeu de logos → boucle sans couture */
+    transform: translateX(-50%);
+  }
+}
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 8%,
+    black 92%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 8%,
+    black 92%,
+    transparent
+  );
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    animation: none;
+  }
+}
