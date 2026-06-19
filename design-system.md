@@ -11,8 +11,9 @@ MCP Gemini Design. Ne pas résumer.
 
 - **Fond blanc dominant.** Les sections de contenu sont sur fond blanc `#ffffff`.
   Les sections « hero » immersives peuvent être sur fond sombre (`bg-zinc-950`) avec image.
-- **Accent orange easyJet `#FF6600`**, utilisé avec parcimonie : CTA, eyebrows, chiffres-clés,
-  icônes, liens, petits traits décoratifs. Jamais de grands aplats orange sauf la tuile CTA.
+- **Accent orange easyJet `#FF6600`** : CTA, eyebrows, chiffres-clés, icônes, liens,
+  traits décoratifs, ainsi que des **aplats / cartes orange** mis en avant (encarts promo,
+  tuiles, blocs de mise en valeur) — texte en blanc dessus.
 - Ton : premium, aéré, humain, technologique. Beaucoup de blanc, respirations généreuses.
 
 ## 2. Couleurs (tokens CSS — `src/styles/global.css`)
@@ -48,9 +49,14 @@ Texte secondaire : `text-gray-600` (paragraphes), `text-gray-500` (labels), `tex
   - `leading-[0.95]` à `leading-[1.05]` pour les gros titres.
   - Échelles : H1 hero `text-[2.5rem] md:text-[4rem] lg:text-[4.5rem]` ; H2 de section
     `text-3xl md:text-4xl lg:text-5xl` ; H3 de carte `text-xl`/`text-2xl`.
-- **Eyebrow / sur-titre** : `text-[#FF6600] font-semibold text-xs tracking-[0.2em] uppercase`.
-- Accent typographique : pour mettre en valeur un fragment de titre, utiliser
-  **`font-heading italic`** (PAS de police serif) éventuellement en `text-[#FF6600]`.
+- **Eyebrow / sur-titre** : composant **`<Eyebrow>`** (`src/components/Eyebrow.tsx`) — une
+  **seule icône** (sparkle orange) + texte **`text-xs font-bold lowercase text-[#FF6600]`**.
+  Bold, minuscule, petit, MÊME icône partout (plus d'`uppercase`).
+- **Accent typographique / highlights de titres** : **Cooper Black** (self-hostée, token
+  `--font-cooper`, classe **`font-cooper`** ; voir `@font-face` dans `src/styles/global.css`),
+  en `text-[#FF6600]`. C'est la police des fragments mis en valeur dans les titres
+  (ex. le `*mot*` orange rendu par `renderHeading`). Le fichier licencié se dépose dans
+  `public/fonts/cooper-black.woff2` (fallback serif tant qu'il est absent).
 
 ## 4. Layout & espacement
 

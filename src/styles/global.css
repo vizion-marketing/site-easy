@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+/* Cooper Black — police self-hostée, utilisée pour les highlights de titres.
+   Déposer le fichier licencié dans public/fonts/ (voir public/fonts/README.md).
+   Tant que le fichier est absent, le fallback serif s'affiche (font-display: swap). */
+@font-face {
+  font-family: "Cooper Black";
+  src:
+    url("/fonts/CooperFiveOpti-Black.woff2") format("woff2"),
+    url("/fonts/CooperFiveOpti-Black.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #0a0a0a;
@@ -39,6 +52,11 @@
   /* Titres : test en Futura (système macOS) → fallback Jost ailleurs */
   --font-heading:
     "Futura", "Futura PT", "Jost Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /* Highlights de titres : Cooper Black self-hostée (voir @font-face ci-dessus).
+     Génère la classe utilitaire `font-cooper`. */
+  --font-cooper:
+    "Cooper Black", "Cooper Std Black", Georgia, "Times New Roman", serif;
 }
 
 body {
@@ -121,6 +139,112 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .marquee {
+    animation: none;
+  }
+}
+
+/* Fondu d'apparition — utilisé pour le crossfade du portrait franchisé
+   (section Franchises) quand la sélection change. Léger zoom + opacité. */
+.animate-fade-in {
+  animation: ev-fade-in 700ms ease-in-out;
+}
+@keyframes ev-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in {
+    animation: none;
+  }
+}
+
+/* CTA principaux : une lueur diagonale balaie le bouton de gauche à droite,
+   rapidement, puis pause avant de recommencer. Appliquer la classe `btn-shine`
+   (elle pose elle-même `position: relative` + `overflow: hidden`). */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 45%;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 100%
+  );
+  transform: translateX(-200%) skewX(-20deg);
+  animation: btn-shine 4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes btn-shine {
+  0% {
+    transform: translateX(-200%) skewX(-20deg);
+  }
+  /* balayage rapide (~0.9 s sur un cycle de 4 s), puis le reflet attend hors-champ */
+  22% {
+    transform: translateX(320%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(320%) skewX(-20deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-shine::after {
+    display: none;
+    animation: none;
+  }
+}
+
+/* Highlights de titres : même esprit de brillance que les boutons (.btn-shine),
+   mais adapté au TEXTE — un reflet clair balaie les lettres (clip sur le texte),
+   rapidement puis pause. À appliquer sur les fragments mis en valeur (avec font-cooper).
+   La couleur orange vient du dégradé (pas besoin de text-[#FF6600]). */
+.highlight-shine {
+  background-image: linear-gradient(
+    100deg,
+    #ff6600 0%,
+    #ff6600 40%,
+    #ffb366 47%,
+    #fff1e3 50%,
+    #ffb366 53%,
+    #ff6600 60%,
+    #ff6600 100%
+  );
+  background-size: 250% 100%;
+  background-position: 0% 0;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: highlight-shine 4s ease-in-out infinite;
+}
+@keyframes highlight-shine {
+  0% {
+    background-position: 100% 0;
+  }
+  /* balayage rapide (~0.9 s sur 4 s), puis le reflet attend hors-champ */
+  22% {
+    background-position: 0% 0;
+  }
+  100% {
+    background-position: 0% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .highlight-shine {
     animation: none;
   }
 }

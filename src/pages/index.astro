@@ -2,66 +2,38 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Navbar from "../components/Navbar.tsx";
 import Hero from "../components/Hero.tsx";
+import LatestTours from "../components/LatestTours.tsx";
+import AboutBento from "../components/AboutBento.tsx";
 import Franchises from "../components/Franchises.tsx";
 import { sanityClient } from "sanity:client";
 import { urlFor } from "../sanity/lib/image";
-import { FRANCHISEES_QUERY, ALL_TOURS_QUERY } from "../sanity/lib/queries";
-
-type FranchiseeDoc = {
-  _id: string;
-  prenom?: string;
-  nom?: string;
-  zone?: string;
-  photo?: unknown;
-  pageLink?: string;
-};
+import {
+  ALL_TOURS_QUERY,
+  SECTEURS_QUERY,
+  CAS_USAGES_QUERY,
+  FRANCHISEES_QUERY,
+} from "../sanity/lib/queries";
 
 type TourDoc = {
   _id: string;
   title?: string;
   slug?: { current?: string };
   client?: string;
+  clientLogo?: unknown;
   location?: string;
-  category?: string;
+  secteur?: string;
   coverImage?: unknown;
   tourUrl?: string;
 };
 
-// Récupération des franchisés depuis Sanity (tolérante : si la config Sanity
-// n'est pas prête ou qu'il n'y a aucun document, on bascule sur des placeholders).
-let docs: FranchiseeDoc[] = [];
-try {
-  docs = await sanityClient.fetch<FranchiseeDoc[]>(FRANCHISEES_QUERY);
-} catch (err) {
-  console.warn("[index] Échec du fetch Sanity des franchisés — placeholders utilisés.", err);
-}
-
-const franchisees = (docs ?? []).map((d) => ({
-  name: [d.prenom, d.nom].filter(Boolean).join(" "),
-  zone: d.zone ?? "",
-  imageUrl: d.photo
-    ? urlFor(d.photo).width(600).height(800).fit("crop").url()
-    : null,
-  pageLink: d.pageLink,
-}));
-
-// Données de démonstration tant qu'aucun franchisé n'est saisi dans le Studio (/admin).
-const placeholderFranchisees = [
-  { name: "Maya Linwood", zone: "Île-de-France", imageUrl: "https://i.pravatar.cc/600?img=5", pageLink: "#" },
-  { name: "Ethan Park", zone: "Auvergne-Rhône-Alpes", imageUrl: "https://i.pravatar.cc/600?img=12", pageLink: "#" },
-  { name: "Aïsha Reynolds", zone: "Provence-Alpes-Côte d'Azur", imageUrl: "https://i.pravatar.cc/600?img=49", pageLink: "#" },
-  { name: "Lucas Moreau", zone: "Nouvelle-Aquitaine", imageUrl: "https://i.pravatar.cc/600?img=33", pageLink: "#" },
-  { name: "Sophie Dubois", zone: "Hauts-de-France", imageUrl: "https://i.pravatar.cc/600?img=45", pageLink: "#" },
-  { name: "Diego Herrera", zone: "Occitanie", imageUrl: "https://i.pravatar.cc/600?img=60", pageLink: "#" },
-  { name: "Camille Bernard", zone: "Bretagne", imageUrl: "https://i.pravatar.cc/600?img=24", pageLink: "#" },
-  { name: "Noah Lefebvre", zone: "Grand Est", imageUrl: "https://i.pravatar.cc/600?img=15", pageLink: "#" },
-  { name: "Léa Martin", zone: "Pays de la Loire", imageUrl: "https://i.pravatar.cc/600?img=32", pageLink: "#" },
-  { name: "Hugo Rossi", zone: "Normandie", imageUrl: "https://i.pravatar.cc/600?img=8", pageLink: "#" },
-  { name: "Chloé Faure", zone: "Bourgogne-Franche-Comté", imageUrl: "https://i.pravatar.cc/600?img=20", pageLink: "#" },
-  { name: "Karim Benali", zone: "Centre-Val de Loire", imageUrl: "https://i.pravatar.cc/600?img=52", pageLink: "#" },
-];
-
-const displayFranchisees = franchisees.length ? franchisees : placeholderFranchisees;
+// Taxonomie de menu (secteur d'activité / cas d'usage).
+type TaxDoc = {
+  _id: string;
+  title?: string;
+  slug?: string;
+  description?: string;
+  icon?: string;
+};
 
 // Récupération des dernières visites virtuelles depuis Sanity (tolérante :
 // placeholders de démo si la config Sanity n'est pas prête ou s'il n'y a aucune visite).
@@ -75,14 +47,60 @@ try {
 const tours = (tourDocs ?? []).slice(0, 8).map((t) => ({
   title: t.title ?? "Visite virtuelle",
   client: t.client,
+  clientLogo: t.clientLogo ? urlFor(t.clientLogo).width(240).url() : null,
   location: t.location,
-  category: t.category,
+  // Badge de la carte = 1er secteur tagué.
+  category: t.secteur,
   imageUrl: t.coverImage
     ? urlFor(t.coverImage).width(640).height(400).fit("crop").url()
     : null,
   // Pas encore de route /visites/[slug] : on pointe sur l'embed s'il existe, sinon ancre.
   href: t.tourUrl ?? "#visites",
 }));
+
+// Taxonomies du méga-menu (tags des visites). Tolérant : si Sanity n'est pas prêt
+// ou qu'aucun tag n'est saisi, le Navbar bascule sur ses valeurs par défaut.
+async function fetchTaxonomy(query: string, label: string): Promise<TaxDoc[]> {
+  try {
+    return (await sanityClient.fetch<TaxDoc[]>(query)) ?? [];
+  } catch (err) {
+    console.warn(`[index] Échec du fetch Sanity ${label} — défauts utilisés.`, err);
+    return [];
+  }
+}
+
+const toMenuItems = (docs: TaxDoc[]) =>
+  docs
+    .filter((d) => d.title)
+    .map((d) => ({
+      title: d.title as string,
+      desc: d.description ?? "",
+      icon: d.icon ?? "",
+      href: d.slug ? `#${d.slug}` : "#",
+    }));
+
+const secteurs = toMenuItems(await fetchTaxonomy(SECTEURS_QUERY, "des secteurs"));
+const casUsages = toMenuItems(await fetchTaxonomy(CAS_USAGES_QUERY, "des cas d'usage"));
+
+// Logos client de démonstration (« logoipsum ») — SVG inline en data URI, filtrés en
+// blanc sur la carte. À remplacer par les vrais logos via le champ clientLogo (Studio).
+// NB : concaténation de chaînes (et non template literal imbriqué) — un backtick
+// imbriqué dans le frontmatter casse le scanner du compilateur Astro.
+const logoipsum = (mark: string, label: string) =>
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 40">' +
+      mark +
+      '<text x="48" y="27" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#111">' +
+      label +
+      "</text></svg>",
+  );
+const DEMO_LOGOS = [
+  logoipsum('<path d="M20 6 34 20 20 34 6 20Z" fill="#111"/>', "Logoipsum"),
+  logoipsum('<path d="M12 8 33 20 12 32Z" fill="#111"/>', "logoipsum"),
+  logoipsum('<path d="M20 6 33 13v14l-13 7-13-7V13Z" fill="#111"/>', "LOGOIPSUM"),
+  logoipsum('<circle cx="20" cy="20" r="13" fill="#111"/>', "Logoipsum"),
+];
 
 // Données de démonstration tant qu'aucune visite n'est saisie dans le Studio (/admin).
 const placeholderTours = [
@@ -94,20 +112,56 @@ const placeholderTours = [
   { title: "Camping Bord de Mer", client: "Huttopia", location: "Biarritz", category: "Tourisme", imageUrl: "https://picsum.photos/seed/camping/640/400", href: "#visites" },
   { title: "Espace Coworking Nova", client: "Wojo", location: "Nantes", category: "Bureaux", imageUrl: "https://picsum.photos/seed/coworking/640/400", href: "#visites" },
   { title: "Boutique Flagship", client: "Le Slip Français", location: "Marseille", category: "Retail", imageUrl: "https://picsum.photos/seed/boutique/640/400", href: "#visites" },
-];
+].map((t, i) => ({ ...t, clientLogo: DEMO_LOGOS[i % DEMO_LOGOS.length] }));
 
 const displayTours = tours.length ? tours : placeholderTours;
 
-// Chiffres-clés (marketing) — à ajuster ou à brancher sur siteSettings plus tard.
-const stats = [
-  { value: "150+", label: "Franchisés" },
-  { value: "42", label: "Villes" },
-  { value: "98%", label: "Satisfaction" },
+// Réseau de franchisés (section moteur de recherche + portrait dynamique).
+// Tolérant : franchisés de démo tant qu'aucun document n'est saisi dans le Studio.
+type FranchiseeDoc = {
+  _id: string;
+  prenom?: string;
+  nom?: string;
+  zone?: string;
+  photo?: unknown;
+  pageLink?: string;
+};
+
+let franchiseeDocs: FranchiseeDoc[] = [];
+try {
+  franchiseeDocs = await sanityClient.fetch<FranchiseeDoc[]>(FRANCHISEES_QUERY);
+} catch (err) {
+  console.warn("[index] Échec du fetch Sanity des franchisés — placeholders utilisés.", err);
+}
+
+const franchisees = (franchiseeDocs ?? [])
+  .filter((f) => f.prenom || f.nom)
+  .map((f) => ({
+    id: f._id,
+    name: [f.prenom, f.nom].filter(Boolean).join(" "),
+    zone: f.zone ?? "",
+    imageUrl: f.photo
+      ? urlFor(f.photo).width(800).height(1000).fit("crop").url()
+      : null,
+    pageLink: f.pageLink,
+  }));
+
+const placeholderFranchisees = [
+  { id: "demo-idf", name: "Camille Laurent", zone: "Île-de-France", imageUrl: "https://picsum.photos/seed/franchise-idf/800/1000", pageLink: "#franchises" },
+  { id: "demo-lyon", name: "Thomas Mercier", zone: "Lyon & Rhône-Alpes", imageUrl: "https://picsum.photos/seed/franchise-lyon/800/1000", pageLink: "#franchises" },
+  { id: "demo-paca", name: "Sofia Benali", zone: "PACA", imageUrl: "https://picsum.photos/seed/franchise-paca/800/1000", pageLink: "#franchises" },
+  { id: "demo-ouest", name: "Hugo Lefèvre", zone: "Nantes & Grand Ouest", imageUrl: "https://picsum.photos/seed/franchise-ouest/800/1000", pageLink: "#franchises" },
+  { id: "demo-nord", name: "Léa Dubois", zone: "Hauts-de-France", imageUrl: "https://picsum.photos/seed/franchise-nord/800/1000", pageLink: "#franchises" },
+  { id: "demo-sud", name: "Antoine Roux", zone: "Occitanie", imageUrl: "https://picsum.photos/seed/franchise-sud/800/1000", pageLink: "#franchises" },
 ];
+
+const displayFranchisees = franchisees.length ? franchisees : placeholderFranchisees;
 ---
 
 <BaseLayout>
-  <Navbar client:load tours={displayTours} />
+  <Navbar client:load tours={displayTours} secteurs={secteurs} casUsages={casUsages} />
   <Hero client:visible />
-  <Franchises client:visible franchisees={displayFranchisees} stats={stats} />
+  <AboutBento client:visible />
+  <LatestTours client:visible tours={displayTours} />
+  <Franchises client:visible franchisees={displayFranchisees} />
 </BaseLayout>

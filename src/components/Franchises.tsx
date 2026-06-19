@@ -1,173 +1,284 @@
-import type { ReactNode } from "react";
+import { useMemo, useState } from "react";
 
 type Franchisee = {
-  name: string;
-  zone: string;
+  id: string;
+  name: string; // "Prénom Nom"
+  zone: string; // zone géographique, ex. "Île-de-France", "Lyon", "PACA"
   imageUrl: string | null;
   pageLink?: string;
 };
 
-type Stat = { value: string; label: string };
-
-type FranchisesProps = {
+type Props = {
   franchisees: Franchisee[];
-  stats: Stat[];
+  eyebrow?: string;
+  /** Le fragment entouré d'astérisques (*texte*) est mis en valeur (orange italique). */
+  heading?: string;
+  intro?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
+  /** Image affichée à droite par défaut, tant qu'aucun franchisé n'est mis en avant. */
+  defaultImageUrl?: string;
+  /** Libellés optionnels de la carte par défaut (surimpression affichée seulement si fournis). */
+  defaultName?: string;
+  defaultRole?: string;
 };
 
-/* Images de secours (placeholders) — REMPLACER par les vraies photos
-   (assets dans /public ou URL). Les portraits de franchisés Sanity, s'ils
-   existent, prennent le pas sur ces placeholders. */
-const FALLBACK_IMG_PRIMARY = "https://picsum.photos/seed/easyvirtual-main/900/1100";
-const FALLBACK_IMG_SECONDARY = "https://picsum.photos/seed/easyvirtual-peek/500/1100";
+/* Normalise pour comparer sans accents ni casse. */
+const normalize = (str: string) =>
+  str.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 
-/* Atouts du réseau (contenu statique + icône SVG inline). */
-const FEATURES: { title: string; desc: string; icon: ReactNode }[] = [
-  {
-    title: "Services sur-mesure",
-    desc: "Un accompagnement de proximité, de la capture 360° à la livraison Matterport en 48h.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-        <line x1="4" y1="21" x2="4" y2="14" />
-        <line x1="4" y1="10" x2="4" y2="3" />
-        <line x1="12" y1="21" x2="12" y2="12" />
-        <line x1="12" y1="8" x2="12" y2="3" />
-        <line x1="20" y1="21" x2="20" y2="16" />
-        <line x1="20" y1="12" x2="20" y2="3" />
-        <line x1="1" y1="14" x2="7" y2="14" />
-        <line x1="9" y1="8" x2="15" y2="8" />
-        <line x1="17" y1="16" x2="23" y2="16" />
-      </svg>
+/* Met en valeur les fragments entourés d'astérisques (*texte*) en orange italique. */
+function renderHeading(text: string) {
+  return text.split(/\*(.*?)\*/g).map((part, i) =>
+    i % 2 === 1 ? (
+      <span key={i} className="font-cooper highlight-shine">
+        {part}
+      </span>
+    ) : (
+      part
     ),
-  },
-  {
-    title: "Solutions innovantes",
-    desc: "Des visites virtuelles immersives qui valorisent durablement chacun de vos espaces.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-        <path d="M9 18h6" />
-        <path d="M10 22h4" />
-        <path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z" />
-      </svg>
-    ),
-  },
-  {
-    title: "Présence nationale",
-    desc: "Un réseau de franchisés partout en France, toujours au plus près de vos clients.",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-        <circle cx="12" cy="10" r="3" />
-      </svg>
-    ),
-  },
-];
+  );
+}
 
-export default function Franchises({ franchisees, stats }: FranchisesProps) {
-  const primary = franchisees[0];
-  const secondary = franchisees[1];
-  const primaryImg = primary?.imageUrl ?? FALLBACK_IMG_PRIMARY;
-  const secondaryImg = secondary?.imageUrl ?? FALLBACK_IMG_SECONDARY;
+/* Section « réseau de franchisés » — moteur de recherche (gauche) + portrait du
+   franchisé sélectionné qui change en fondu (droite). Îlot React interactif :
+   l'état (recherche, sélection) est géré ici, les données arrivent par props. */
+export default function Franchises({
+  franchisees = [],
+  eyebrow = "Notre réseau",
+  heading = "Trouvez votre *expert* le plus proche",
+  intro = "Nos franchisés vous accompagnent partout en France pour capturer vos espaces sous leur meilleur angle.",
+  ctaLabel = "Devenir franchisé",
+  ctaHref = "#contact",
+  defaultImageUrl = "/didier.png",
+  defaultName,
+  defaultRole,
+}: Props) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Filtre par nom OU zone, insensible aux accents et à la casse.
+  const filteredFranchisees = useMemo(() => {
+    const term = normalize(searchTerm.trim());
+    if (!term) return franchisees;
+    return franchisees.filter(
+      (f) => normalize(f.name).includes(term) || normalize(f.zone).includes(term),
+    );
+  }, [franchisees, searchTerm]);
+
+  // Portrait affiché = le franchisé sélectionné par clic, sinon le 1er résultat
+  // pendant une recherche. À l'état initial (ni clic ni recherche), on retourne
+  // null pour laisser place à la photo par défaut (Didier) à droite.
+  const activeFranchisee = useMemo(() => {
+    if (selectedId) {
+      const found = franchisees.find((f) => f.id === selectedId);
+      if (found) return found;
+    }
+    if (searchTerm.trim()) return filteredFranchisees[0] ?? null;
+    return null;
+  }, [selectedId, searchTerm, filteredFranchisees, franchisees]);
 
   return (
-    <section id="franchises" className="bg-white py-24 md:py-32 lg:py-40">
+    <section id="franchises" className="relative overflow-hidden bg-white py-24 text-[#0a0a0a] md:py-32 lg:py-40">
       <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
+        <div className="grid grid-cols-1 items-start gap-16 lg:grid-cols-12 lg:gap-20">
 
-        {/* 1) EN-TÊTE CENTRÉ — pictogramme 360° + wordmark */}
-        <div className="flex items-center justify-center gap-2.5 text-gray-500">
-          <span className="text-[#FF6600]">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-5 w-5" aria-hidden="true">
-              <circle cx="12" cy="12" r="9" />
-              <ellipse cx="12" cy="12" rx="4" ry="9" />
-              <path d="M3 12h18" strokeLinecap="round" />
-            </svg>
-          </span>
-          <span className="font-heading text-sm font-medium tracking-tight">easyvirtual.tours</span>
-        </div>
+          {/* COLONNE GAUCHE — eyebrow + titre + intro + recherche + liste + CTA */}
+          <div className="lg:col-span-6">
+            <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-[0_12px_32px_-16px_rgba(255,102,0,0.18)] md:p-10">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold tracking-tight text-[#FF6600]">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5 shrink-0" aria-hidden="true">
+                  <path d="M12 2 14 10 22 12 14 14 12 22 10 14 2 12 10 10Z" />
+                </svg>
+                {eyebrow}
+              </span>
 
-        {/* 2) TITRE CENTRÉ — ligne 2 en accent italique */}
-        <h2 className="mt-7 text-center font-heading font-extralight text-4xl md:text-5xl lg:text-6xl text-[#0a0a0a] tracking-[-0.02em] leading-[1.05]">
-          Valorisez vos espaces,
-          <br />
-          <span className="font-heading italic">aujourd&apos;hui et demain.</span>
-        </h2>
+              <h2 className="mt-6 font-heading text-4xl font-extralight leading-[1.05] tracking-tight md:text-5xl lg:text-6xl">
+                {renderHeading(heading)}
+              </h2>
 
-        {/* 3) CORPS — deux colonnes : infos (gauche) + images (droite) */}
-        <div className="mt-16 grid grid-cols-1 items-stretch gap-12 md:mt-20 lg:grid-cols-12 lg:gap-16">
+              <p className="mt-6 max-w-xl text-lg leading-relaxed text-gray-600">{intro}</p>
 
-          {/* COLONNE GAUCHE — titre + 3 atouts répartis sur la hauteur de l'image */}
-          <div className="flex h-full flex-col lg:col-span-5">
-            <h3 className="font-heading text-2xl font-light leading-tight tracking-tight text-[#0a0a0a] md:text-3xl">
-              Le réseau n°1
-              <br />
-              en France
-            </h3>
-
-            <ul className="mt-10 flex flex-1 flex-col justify-between gap-8">
-              {FEATURES.map((f) => (
-                <li key={f.title} className="flex gap-4">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#fff4ec] text-[#FF6600]">
-                    {f.icon}
-                  </span>
-                  <div>
-                    <h4 className="font-heading text-lg font-medium text-[#0a0a0a]">{f.title}</h4>
-                    <p className="mt-1 max-w-sm text-sm leading-relaxed text-gray-600">{f.desc}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* COLONNE DROITE — grande image + liseré d'une seconde image */}
-          <div className="lg:col-span-7">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_6rem] lg:grid-cols-[1fr_7rem]">
-              {/* Image principale */}
-              <div className="group relative aspect-[4/5] overflow-hidden rounded-2xl shadow-[0_24px_60px_-24px_rgba(255,102,0,0.30)]">
-                {/* REMPLACER par la vraie photo (asset /public ou URL) */}
-                <img
-                  src={primaryImg}
-                  alt={primary?.name ?? "Visite virtuelle immersive"}
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+              {/* CHAMP DE RECHERCHE */}
+              <div className="relative mt-10">
+                <label htmlFor="franchise-search" className="sr-only">
+                  Rechercher un franchisé
+                </label>
+                <span className="pointer-events-none absolute inset-y-0 left-5 flex items-center text-gray-400">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                </span>
+                <input
+                  id="franchise-search"
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Rechercher une ville, une région, un nom…"
+                  className="w-full rounded-full border border-gray-200 bg-white py-4 pl-12 pr-6 text-[#0a0a0a] outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-[#FF6600] focus:ring-4 focus:ring-[#FF6600]/10"
                 />
-                {primary?.name && (
-                  <>
-                    <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/65 to-transparent" />
-                    <div className="absolute bottom-5 left-5 text-white">
-                      <p className="font-heading text-base font-medium leading-tight">{primary.name}</p>
-                      <p className="text-xs text-white/80">{primary.zone}</p>
-                    </div>
-                  </>
+              </div>
+
+              {/* LISTE FILTRABLE */}
+              <div className="mt-6">
+                {filteredFranchisees.length > 0 ? (
+                  <ul className="max-h-[22rem] space-y-3 overflow-y-auto pr-2 -mr-2">
+                    {filteredFranchisees.map((f) => {
+                      const isSelected = activeFranchisee?.id === f.id;
+                      return (
+                        <li key={f.id} className="py-1">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedId(f.id)}
+                            aria-pressed={isSelected}
+                            className={`group/row flex w-full items-center justify-between rounded-xl border bg-gray-50 px-5 py-4 text-left transition-all duration-300 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:transform-none ${
+                              isSelected
+                                ? "border-[#FF6600] ring-1 ring-[#FF6600]/30"
+                                : "border-gray-100 hover:border-[#ff8533]/60"
+                            }`}
+                          >
+                            <span className="flex flex-col">
+                              <span className={`font-heading text-lg transition-colors duration-300 ${isSelected ? "text-[#FF6600]" : "text-[#0a0a0a]"}`}>
+                                {f.name}
+                              </span>
+                              <span className="text-sm font-medium text-gray-500">{f.zone}</span>
+                            </span>
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className={`h-5 w-5 shrink-0 transition-all duration-300 motion-reduce:transition-none ${
+                                isSelected
+                                  ? "translate-x-1 text-[#FF6600]"
+                                  : "text-gray-300 group-hover/row:translate-x-1 group-hover/row:text-gray-400"
+                              }`}
+                              aria-hidden="true"
+                            >
+                              <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <div className="rounded-2xl border-2 border-dashed border-gray-100 bg-gray-50 py-12 text-center">
+                    <p className="font-medium text-gray-500">Aucun franchisé trouvé</p>
+                  </div>
                 )}
               </div>
 
-              {/* Liseré : seconde image qui « dépasse » sur le bord droit */}
-              <div className="relative hidden overflow-hidden rounded-2xl md:block">
-                {/* REMPLACER par la vraie photo (asset /public ou URL) */}
-                <img
-                  src={secondaryImg}
-                  alt={secondary?.name ?? ""}
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-              </div>
+              {/* CTA */}
+              <a
+                href={ctaHref}
+                className="group mt-12 inline-flex items-center gap-3 rounded-full bg-[#FF6600] px-8 py-4 font-semibold text-white shadow-xl shadow-orange-900/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#e85c00] active:scale-95 motion-reduce:transition-none"
+              >
+                {ctaLabel}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1.5 motion-reduce:transition-none" aria-hidden="true">
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
+                </svg>
+              </a>
             </div>
           </div>
-        </div>
 
-        {/* 4) BANDEAU CHIFFRES-CLÉS — 3 stats */}
-        <div className="mt-20 border-t border-gray-100 pt-12 md:mt-28">
-          <dl className="grid grid-cols-1 gap-10 text-center sm:grid-cols-3">
-            {stats.map((stat) => (
-              <div key={stat.label}>
-                <dt className="font-heading text-5xl font-light tracking-tight text-[#0a0a0a] md:text-6xl">
-                  {stat.value}
-                </dt>
-                <dd className="mt-3 text-xs font-bold uppercase tracking-widest text-gray-500">
-                  {stat.label}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
+          {/* COLONNE DROITE — portrait du franchisé sélectionné (change en fondu) */}
+          <div className="relative lg:col-span-6">
+            {/* Décorations */}
+            <div className="absolute -inset-4 -z-10 rounded-3xl border-2 border-dashed border-[#FF6600]/15" aria-hidden="true" />
+            <div className="absolute left-1/2 top-1/2 -z-10 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FF6600]/5 blur-3xl" aria-hidden="true" />
 
+            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-gray-100 bg-[#fff4ec] shadow-[0_22px_50px_-16px_rgba(255,102,0,0.20)]">
+              {activeFranchisee ? (
+                <div key={activeFranchisee.id} className="group h-full w-full animate-fade-in">
+                  {activeFranchisee.imageUrl || defaultImageUrl ? (
+                    <img
+                      src={activeFranchisee.imageUrl ?? defaultImageUrl}
+                      alt={`Portrait de ${activeFranchisee.name}`}
+                      className="h-full w-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full flex-col items-center justify-center gap-4 text-[#FF6600]/20">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="h-20 w-20" aria-hidden="true">
+                        <path d="M19 4h-3.17L14.41 2H9.59L8.17 4H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z" />
+                        <circle cx="12" cy="13" r="4" />
+                      </svg>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                        Photo bientôt disponible
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Surimpression identité */}
+                  <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 bg-gradient-to-t from-black/85 via-black/20 to-transparent p-8 md:p-10">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs font-bold uppercase tracking-widest text-white/70">
+                        {activeFranchisee.zone}
+                      </span>
+                      <span className="font-heading text-3xl leading-none tracking-tight text-white md:text-4xl">
+                        {activeFranchisee.name}
+                      </span>
+                    </div>
+
+                    {activeFranchisee.pageLink && (
+                      <a
+                        href={activeFranchisee.pageLink}
+                        aria-label={`Voir la page de ${activeFranchisee.name}`}
+                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/40 bg-white/10 text-white shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-110 hover:bg-white/25 active:scale-95 motion-reduce:transition-none"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+                          <line x1="5" y1="12" x2="19" y2="12" />
+                          <polyline points="12 5 19 12 12 19" />
+                        </svg>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ) : defaultImageUrl ? (
+                /* État initial (ni clic ni recherche) → photo par défaut (Didier). */
+                <div key="__default__" className="group h-full w-full animate-fade-in">
+                  <img
+                    src={defaultImageUrl}
+                    alt={defaultName ? `Portrait de ${defaultName}` : "Notre réseau"}
+                    className="h-full w-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                  />
+
+                  {(defaultName || defaultRole) && (
+                    <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1 bg-gradient-to-t from-black/85 via-black/20 to-transparent p-8 md:p-10">
+                      {defaultRole && (
+                        <span className="text-xs font-bold uppercase tracking-widest text-white/70">
+                          {defaultRole}
+                        </span>
+                      )}
+                      {defaultName && (
+                        <span className="font-heading text-3xl leading-none tracking-tight text-white md:text-4xl">
+                          {defaultName}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex h-full w-full flex-col items-center justify-center gap-4 text-[#FF6600]/20">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" className="h-16 w-16" aria-hidden="true">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    Aucun franchisé
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+        </div>
       </div>
     </section>
   );

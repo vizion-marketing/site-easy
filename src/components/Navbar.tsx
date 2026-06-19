@@ -1,4 +1,5 @@
 import { useState, useEffect, type ComponentType } from "react";
+import { LiquidGlass } from "./LiquidGlass";
 import {
   HomeMotion,
   StarMotion,
@@ -37,7 +38,38 @@ type NavLink = {
   id?: string;
 };
 
-type MenuItem = { title: string; desc: string; icon: ComponentType<MotionIconProps> };
+type MenuItem = { title: string; desc: string; icon: ComponentType<MotionIconProps>; href?: string };
+
+/* Taxonomie de menu reçue de Sanity (secteur d'activité / cas d'usage).
+   `icon` est une clé string mappée vers un composant Carbon Motion (ICON_MAP). */
+type TaxItem = { title: string; desc: string; icon: string; href: string };
+
+/* Mappe les clés d'icône des taxonomies Sanity (cf. menuIconOptions.ts) vers
+   les composants Carbon Motion. Garder synchronisé avec MENU_ICON_OPTIONS. */
+const ICON_MAP: Record<string, ComponentType<MotionIconProps>> = {
+  home: HomeMotion,
+  star: StarMotion,
+  tag: TagMotion,
+  binoculars: BinocularsMotion,
+  layers: LayersMotion,
+  globe: GlobeMotion,
+  signal: ConnectionSignalMotion,
+  window: SelectWindowMotion,
+  launch: LaunchMotion,
+  events: EventsMotion,
+  scan: ScanAltMotion,
+  recommend: RecommendMotion,
+};
+
+/* Convertit une taxonomie Sanity en item de menu (icône string → composant). */
+function toMenuItem(item: TaxItem): MenuItem {
+  return {
+    title: item.title,
+    desc: item.desc,
+    icon: ICON_MAP[item.icon] ?? BinocularsMotion,
+    href: item.href,
+  };
+}
 
 /* Visite virtuelle référencée dans le méga-menu "Dernières visites". */
 type TourItem = {
@@ -49,49 +81,75 @@ type TourItem = {
   href: string;
 };
 
-/* Lien de méga-menu : pastille carrée orange pleine, icône blanche, animée au survol. */
+/* Mesh gradient orange de marque — fond premium réutilisé sur les pastilles d'icônes
+   des méga-menus et la carte promo "Visite pilote". */
+const MESH_BRAND = {
+  backgroundColor: "#ff6600",
+  backgroundImage:
+    "radial-gradient(at 15% 18%, #ff8040 0px, transparent 50%)," +
+    "radial-gradient(at 85% 12%, #ffc7a0 0px, transparent 42%)," +
+    "radial-gradient(at 92% 60%, #ff7c2a 0px, transparent 46%)," +
+    "radial-gradient(at 12% 92%, #ee6000 0px, transparent 52%)," +
+    "radial-gradient(at 50% 50%, #ff741c 0px, transparent 55%)",
+};
+
+/* Lien de méga-menu : pastille carrée à dégradé mesh orange, icône blanche, animée au survol. */
 function SectorLink({ item }: { item: MenuItem }) {
   const [hover, setHover] = useState(false);
   const Icon = item.icon;
   return (
     <a
-      href="#"
-      className="group flex gap-5 p-4 rounded-xl transition-all hover:bg-gray-50 border border-transparent hover:border-gray-100"
+      href={item.href ?? "#"}
+      className="group flex items-center gap-4 rounded-xl border border-transparent bg-white p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#ff8533]/60 hover:shadow-[0_22px_50px_-16px_rgba(255,102,0,0.35)] motion-reduce:transition-none motion-reduce:hover:transform-none"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-[#FF6600] group-hover:bg-[#e85c00] transition-colors">
+      <div
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-105"
+        style={MESH_BRAND}
+      >
         <span className="cds-motion-icon cds-motion-icon--white">
-          <Icon isAnimating={hover} size={24} />
+          <Icon isAnimating={hover} size={22} />
         </span>
       </div>
-      <div>
-        <h4 className="font-heading font-semibold text-[#0a0a0a] group-hover:text-[#FF6600] transition-colors">{item.title}</h4>
-        <p className="mt-1 text-sm text-gray-500 leading-relaxed">{item.desc}</p>
+      <div className="min-w-0">
+        <h4 className="font-heading font-semibold leading-tight text-[#0a0a0a] transition-colors duration-300 group-hover:text-[#FF6600]">
+          {item.title}
+        </h4>
+        <p className="mt-0.5 truncate text-sm leading-relaxed text-gray-500">
+          {item.desc}
+        </p>
       </div>
     </a>
   );
 }
 
-/* Lien "Cas d'usages" : pastille carrée orange pleine, icône blanche, animée au survol. */
+/* Lien "Cas d'usages" : pastille carrée à dégradé mesh orange, icône blanche, animée au survol. */
 function UsageLink({ item }: { item: MenuItem }) {
   const [hover, setHover] = useState(false);
   const Icon = item.icon;
   return (
     <a
-      href="#"
-      className="group flex items-start gap-5 p-4 rounded-xl transition-all hover:bg-gray-50"
+      href={item.href ?? "#"}
+      className="group flex items-center gap-4 rounded-xl border border-transparent bg-white p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#ff8533]/60 hover:shadow-[0_22px_50px_-16px_rgba(255,102,0,0.35)] motion-reduce:transition-none motion-reduce:hover:transform-none"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#FF6600] group-hover:bg-[#e85c00] transition-colors">
+      <div
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-105"
+        style={MESH_BRAND}
+      >
         <span className="cds-motion-icon cds-motion-icon--white">
-          <Icon isAnimating={hover} size={24} />
+          <Icon isAnimating={hover} size={22} />
         </span>
       </div>
-      <div>
-        <h4 className="font-heading font-semibold text-base text-[#0a0a0a] group-hover:text-[#FF6600] transition-colors">{item.title}</h4>
-        <p className="mt-1 text-sm text-gray-500 leading-normal">{item.desc}</p>
+      <div className="min-w-0">
+        <h4 className="font-heading font-semibold leading-tight text-lg text-[#0a0a0a] transition-colors duration-300 group-hover:text-[#FF6600]">
+          {item.title}
+        </h4>
+        <p className="mt-0.5 truncate text-sm leading-relaxed text-gray-500">
+          {item.desc}
+        </p>
       </div>
     </a>
   );
@@ -164,19 +222,34 @@ function TourCard({ tour }: { tour: TourItem }) {
   );
 }
 
-export default function Navbar({ tours = [] }: { tours?: TourItem[] }) {
-  const [isScrolled, setIsScrolled] = useState(false);
+export default function Navbar({
+  tours = [],
+  secteurs = [],
+  casUsages = [],
+}: {
+  tours?: TourItem[];
+  secteurs?: TaxItem[];
+  casUsages?: TaxItem[];
+}) {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
+  const [isTourOpen, setIsTourOpen] = useState(false);
 
-  // Bascule le style de la navbar au scroll
+  // Modale visite pilote : fermeture à l'Échap + blocage du scroll de fond.
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    if (!isTourOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsTourOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isTourOpen]);
 
   const navLinks: NavLink[] = [
     { name: "Accueil", href: "/" },
@@ -184,10 +257,10 @@ export default function Navbar({ tours = [] }: { tours?: TourItem[] }) {
     { name: "Cas d'usages", type: "mega", id: "usages" },
     { name: "Dernières visites", type: "mega", id: "visites" },
     { name: "Ressources", type: "mega", id: "ressources" },
-    { name: "Qui sommes-nous", href: "#about" },
   ];
 
-  const secteursData: MenuItem[] = [
+  // Valeurs de repli (méga-menu) tant qu'aucune taxonomie n'est saisie dans Sanity.
+  const DEFAULT_SECTEURS: MenuItem[] = [
     { title: "Immobilier", desc: "Valorisez biens et programmes neufs", icon: HomeMotion },
     { title: "Hôtellerie & Resto", desc: "Faites visiter chambres et espaces", icon: StarMotion },
     { title: "Commerce & Retail", desc: "Showrooms et boutiques immersives", icon: TagMotion },
@@ -196,7 +269,7 @@ export default function Navbar({ tours = [] }: { tours?: TourItem[] }) {
     { title: "Tourisme & Loisirs", desc: "Sites, campings, parcs naturels", icon: GlobeMotion },
   ];
 
-  const usagesData: MenuItem[] = [
+  const DEFAULT_USAGES: MenuItem[] = [
     { title: "Visite à distance", desc: "Faites visiter vos biens en temps réel", icon: ConnectionSignalMotion },
     { title: "Showroom virtuel", desc: "Une boutique ouverte 24h/24", icon: SelectWindowMotion },
     { title: "Formation immersive", desc: "Onboarding et sécurité en VR", icon: LaunchMotion },
@@ -204,6 +277,10 @@ export default function Navbar({ tours = [] }: { tours?: TourItem[] }) {
     { title: "Documentation Tech", desc: "Inventaires et relevés 360°", icon: ScanAltMotion },
     { title: "Marketing Immo", desc: "Boostez vos annonces immobilières", icon: RecommendMotion },
   ];
+
+  // Taxonomies pilotées par Sanity (tags des visites) ; repli sur les défauts si vide.
+  const secteursData: MenuItem[] = secteurs.length ? secteurs.map(toMenuItem) : DEFAULT_SECTEURS;
+  const usagesData: MenuItem[] = casUsages.length ? casUsages.map(toMenuItem) : DEFAULT_USAGES;
 
   // Colonne centrale du méga-menu "Cas d'usages" : fonctionnalités produit.
   const featuresData: MenuItem[] = [
@@ -258,32 +335,36 @@ export default function Navbar({ tours = [] }: { tours?: TourItem[] }) {
     image: "/easy.png",
   };
 
-  // La navbar passe en mode clair (fond blanc + texte sombre) au scroll
-  // OU lorsqu'un méga-menu est ouvert au survol.
-  const isLight = isScrolled || activeMenu !== null;
-  const textColorClass = isLight ? "text-[#0a0a0a]" : "text-white";
-  const navItemClass = `group flex items-center gap-1.5 py-8 text-sm font-medium transition-colors hover:text-[#FF6600] ${textColorClass}`;
+  // Navbar : pill blanche flottante, sans ombre.
+  const navItemClass = `group flex items-center gap-1.5 py-2 text-sm font-medium transition-all text-[#0a0a0a] hover:text-[#FF6600]`;
 
   return (
+    <>
     <header
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ease-in-out ${
-        isLight
-          ? "bg-white shadow-lg border-b border-gray-100"
-          : "bg-transparent"
-      }`}
+      className="sticky top-0 z-50"
       onMouseLeave={() => setActiveMenu(null)}
     >
-      <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8 h-20 flex items-center justify-between">
+      <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8 pt-5 sm:pt-6">
+        <LiquidGlass
+          radius={999}
+          bezel={14}
+          scale={14}
+          blur={5}
+          saturate={1.5}
+          brightness={1.05}
+          tint="rgba(255,255,255,0.45)"
+          className="flex h-16 items-center justify-between px-4 sm:px-6"
+        >
 
         {/* Gauche : logo + nav */}
         <div className="flex items-center gap-12">
-          <a href="/" className="shrink-0 transition-transform hover:scale-105 active:scale-95">
+          <a href="/" className="shrink-0 flex items-center h-full">
             <img
               src="/logo-easyvirtual-tours-3-300x95.webp"
               alt="easyVirtual.tours"
               width={300}
               height={95}
-              className="h-9 w-auto"
+              className="block h-9 sm:h-10 w-auto"
             />
           </a>
 
@@ -301,7 +382,10 @@ export default function Navbar({ tours = [] }: { tours?: TourItem[] }) {
                   aria-expanded={activeMenu === link.id}
                   aria-haspopup={link.type === "mega"}
                 >
-                  {link.name}
+                  <span className="relative">
+                    {link.name}
+                    <span className="absolute -bottom-1 left-0 w-0 h-px bg-[#FF6600] transition-all duration-300 group-hover:w-full" />
+                  </span>
                   {link.type === "mega" && (
                     <svg
                       className={`w-3.5 h-3.5 transition-transform duration-200 ${activeMenu === link.id ? "rotate-180" : ""}`}
@@ -320,13 +404,13 @@ export default function Navbar({ tours = [] }: { tours?: TourItem[] }) {
         <div className="flex items-center gap-4 sm:gap-6">
           <a
             href="#login"
-            className={`hidden sm:block text-sm font-medium transition-colors hover:text-[#FF6600] ${textColorClass}`}
+            className="hidden sm:block text-sm font-medium transition-colors text-[#0a0a0a] hover:text-[#FF6600]"
           >
             Se connecter
           </a>
           <a
             href="#devis"
-            className="bg-[#FF6600] hover:bg-[#e85c00] text-white px-6 py-3 rounded-full text-sm font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+            className="bg-[#FF6600] text-white hover:bg-[#e85c00] px-6 py-3 rounded-full text-sm font-semibold transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
           >
             Demander un devis
           </a>
@@ -334,47 +418,54 @@ export default function Navbar({ tours = [] }: { tours?: TourItem[] }) {
           {/* Toggle mobile */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={`md:hidden p-2 rounded-full transition-colors ${isLight ? "hover:bg-gray-100" : "hover:bg-white/10"}`}
+            className="md:hidden p-2 rounded-full transition-colors text-[#0a0a0a] hover:bg-black/5"
             aria-label="Ouvrir le menu"
             aria-expanded={isMobileMenuOpen}
           >
-            <svg className={`w-6 h-6 ${textColorClass}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               {isMobileMenuOpen ? <path d="M6 18L18 6M6 6l12 12" /> : <path d="M4 6h16M4 12h16M4 18h16" />}
             </svg>
           </button>
         </div>
+        </LiquidGlass>
       </div>
 
       {/* --- MÉGA-MENUS (DESKTOP) --- */}
 
       {/* Secteurs d'activités */}
       <div
-        className={`absolute top-full left-0 w-full bg-white border-b border-gray-100 shadow-2xl transition-all duration-300 origin-top ${
+        className={`absolute top-full left-0 w-full transition-all duration-300 origin-top ${
           activeMenu === "secteurs" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2 pointer-events-none"
         }`}
         onMouseEnter={() => setActiveMenu("secteurs")}
       >
-        <div className="mx-auto max-w-[var(--container)] px-8 py-10">
-          <div className="grid grid-cols-3 gap-x-12 gap-y-8">
+        <div className="mx-auto w-full max-w-[var(--container)] px-6 pt-2 sm:px-8">
+          <div className="w-fit max-w-full rounded-2xl border border-gray-100 bg-white shadow-2xl">
+            <div className="px-8 py-10">
+          <div className="grid grid-cols-3 gap-x-4 gap-y-1">
             {secteursData.map((item) => (
               <SectorLink key={item.title} item={item} />
             ))}
+          </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Cas d'usages */}
       <div
-        className={`absolute top-full left-0 w-full bg-white border-b border-gray-100 shadow-2xl transition-all duration-300 origin-top ${
+        className={`absolute top-full left-0 w-full transition-all duration-300 origin-top ${
           activeMenu === "usages" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2 pointer-events-none"
         }`}
         onMouseEnter={() => setActiveMenu("usages")}
       >
-        <div className="mx-auto max-w-[var(--container)] px-8 py-10 flex">
+        <div className="mx-auto w-full max-w-[var(--container)] px-6 pt-2 sm:px-8">
+          <div className="w-fit max-w-full rounded-2xl border border-gray-100 bg-white shadow-2xl">
+            <div className="px-8 py-10 flex">
           {/* ZONE 1 — Cas d'usages (zone dominante) */}
           <div className="flex-1 pr-10 flex flex-col">
             <span className="text-[11px] tracking-[0.2em] font-semibold text-gray-500 uppercase block mb-6">Cas d'usages</span>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
               {usagesData.map((item) => (
                 <UsageLink key={item.title} item={item} />
               ))}
@@ -402,31 +493,42 @@ export default function Navbar({ tours = [] }: { tours?: TourItem[] }) {
           {/* ZONE 3 — Visite virtuelle pilote (promo droite) */}
           <div className="w-85 shrink-0 border-l border-gray-100 pl-10">
             <span className="text-[11px] tracking-[0.2em] font-semibold text-gray-400 uppercase block mb-6">Découvrir l'expérience</span>
-            <div className="group/promo relative">
-              <div className="relative h-40 w-full overflow-hidden rounded-xl bg-gray-100">
-                <img src={pilotTour.image} alt="" className="h-full w-full object-cover transition-transform duration-700 group-hover/promo:scale-105" />
-                <div className="absolute inset-0 bg-black/20" />
+            <div
+              className="group/promo relative overflow-hidden rounded-2xl p-5 text-white"
+              style={MESH_BRAND}
+            >
+              <button
+                type="button"
+                onClick={() => setIsTourOpen(true)}
+                aria-label="Ouvrir la visite virtuelle pilote"
+                className="group/thumb relative block h-36 w-full overflow-hidden rounded-xl bg-black/10"
+              >
+                <img src={pilotTour.image} alt="" className="h-full w-full object-cover transition-transform duration-700 group-hover/thumb:scale-105" />
+                <div className="absolute inset-0 bg-black/15" />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-[#FF6600] shadow-lg transition-transform group-hover/promo:scale-110">
-                    <svg className="h-6 w-6 fill-current" viewBox="0 0 24 24">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-[#FF6600] shadow-lg transition-transform group-hover/thumb:scale-110">
+                    <svg className="h-6 w-6 fill-current" viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M8 5v14l11-7z" />
                     </svg>
                   </div>
                 </div>
-              </div>
-              <div className="mt-5">
-                <h3 className="font-heading font-bold text-[#0a0a0a] text-lg leading-tight">{pilotTour.title}</h3>
-                <p className="mt-2 text-sm text-gray-600 leading-relaxed">{pilotTour.desc}</p>
-                <a
-                  href={pilotTour.href}
-                  className="mt-6 inline-flex w-full items-center justify-center gap-2 bg-[#FF6600] px-6 py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#e85c00] rounded-full"
+              </button>
+              <div className="relative mt-5">
+                <h3 className="font-heading font-bold text-white text-lg leading-tight">{pilotTour.title}</h3>
+                <p className="mt-2 text-sm text-white/85 leading-relaxed">{pilotTour.desc}</p>
+                <button
+                  type="button"
+                  onClick={() => setIsTourOpen(true)}
+                  className="mt-6 inline-flex w-full items-center justify-center gap-2 bg-white px-6 py-3.5 text-sm font-semibold text-[#FF6600] transition-colors hover:bg-gray-100 rounded-full"
                 >
                   Lancer la visite
                   <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
                     <path d="M8 5v14l11-7z" />
                   </svg>
-                </a>
+                </button>
               </div>
+            </div>
+          </div>
             </div>
           </div>
         </div>
@@ -434,16 +536,18 @@ export default function Navbar({ tours = [] }: { tours?: TourItem[] }) {
 
       {/* Ressources */}
       <div
-        className={`absolute top-full left-0 w-full bg-white border-b border-gray-100 shadow-2xl transition-all duration-300 origin-top ${activeMenu === "ressources" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2 pointer-events-none"}`}
+        className={`absolute top-full left-0 w-full transition-all duration-300 origin-top ${activeMenu === "ressources" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2 pointer-events-none"}`}
         onMouseEnter={() => setActiveMenu("ressources")}
       >
-        <div className="mx-auto max-w-[var(--container)] px-8 py-10 flex">
+        <div className="mx-auto w-full max-w-[var(--container)] px-6 pt-2 sm:px-8">
+          <div className="w-fit max-w-full rounded-2xl border border-gray-100 bg-white shadow-2xl">
+            <div className="px-8 py-10 flex">
           {/* ZONE 1 dominante : Découvrir la visite virtuelle */}
           <div className="flex-1 pr-10 flex flex-col">
             <span className="text-[11px] tracking-[0.2em] font-semibold text-gray-500 uppercase block mb-6">
               Découvrir la visite virtuelle
             </span>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
               {ressourcesData.map((item) => (
                 <UsageLink key={item.title} item={item} />
               ))}
@@ -508,15 +612,19 @@ export default function Navbar({ tours = [] }: { tours?: TourItem[] }) {
               </a>
             </div>
           </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Dernières visites */}
       <div
-        className={`absolute top-full left-0 w-full bg-white border-b border-gray-100 shadow-2xl transition-all duration-300 origin-top ${activeMenu === "visites" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2 pointer-events-none"}`}
+        className={`absolute top-full left-0 w-full transition-all duration-300 origin-top ${activeMenu === "visites" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2 pointer-events-none"}`}
         onMouseEnter={() => setActiveMenu("visites")}
       >
-        <div className="mx-auto max-w-[var(--container)] px-8 py-10">
+        <div className="mx-auto w-full max-w-[var(--container)] px-6 pt-2 sm:px-8">
+          <div className="w-fit max-w-full rounded-2xl border border-gray-100 bg-white shadow-2xl">
+            <div className="px-8 py-10">
           <span className="text-[11px] tracking-[0.2em] font-semibold text-gray-500 uppercase block mb-6">
             Dernières visites
           </span>
@@ -531,12 +639,14 @@ export default function Navbar({ tours = [] }: { tours?: TourItem[] }) {
               Voir toutes les visites →
             </a>
           </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* --- MENU MOBILE --- */}
       <div
-        className={`md:hidden fixed inset-x-0 top-20 bg-white border-t border-gray-100 shadow-xl overflow-y-auto transition-all duration-300 origin-top ${
+        className={`md:hidden fixed inset-x-0 top-24 bg-white border-t border-gray-100 shadow-xl overflow-y-auto transition-all duration-300 origin-top ${
           isMobileMenuOpen ? "opacity-100 scale-y-100" : "opacity-0 scale-y-0 pointer-events-none"
         }`}
         style={{ maxHeight: "calc(100vh - 80px)" }}
@@ -573,7 +683,7 @@ export default function Navbar({ tours = [] }: { tours?: TourItem[] }) {
                               ? [...ressourcesData, ...entrepriseData]
                               : usagesData
                           ).map((sub) => (
-                            <a key={sub.title} href="#" className="flex flex-col py-1">
+                            <a key={sub.title} href={sub.href ?? "#"} className="flex flex-col py-1">
                               <span className="text-sm font-bold text-[#0a0a0a]">{sub.title}</span>
                               <span className="text-xs text-gray-500">{sub.desc}</span>
                             </a>
@@ -600,5 +710,42 @@ export default function Navbar({ tours = [] }: { tours?: TourItem[] }) {
         </div>
       </div>
     </header>
+
+      {/* MODALE — Visite virtuelle pilote (embed) */}
+      {isTourOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Visite virtuelle pilote"
+        >
+          {/* Fond cliquable */}
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setIsTourOpen(false)}
+          />
+          <div className="relative z-10 w-full max-w-[1440px]">
+            <button
+              type="button"
+              onClick={() => setIsTourOpen(false)}
+              aria-label="Fermer la visite"
+              className="absolute right-3 top-3 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition hover:bg-black/70"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <path d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="relative aspect-video max-h-[85vh] w-full overflow-hidden rounded-2xl bg-black shadow-2xl">
+              <iframe
+                src="https://my.easyvirtual.tours/tour/visite-virtuelle"
+                title="Visite virtuelle pilote"
+                allowFullScreen
+                className="absolute inset-0 h-full w-full border-0"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
