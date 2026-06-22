@@ -135,8 +135,8 @@ export default function LatestTours({ tours, allHref = "#toutes-visites" }: Prop
         {/* HEADER — sur-titre + titre + onglets de filtre */}
         <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
           <div>
-            <Eyebrow className="mb-4">nos réalisations</Eyebrow>
-            <h2 className="font-heading text-5xl font-extralight leading-[1.02] tracking-tight md:text-6xl lg:text-7xl">
+            <Eyebrow className="mb-4">Nos réalisations</Eyebrow>
+            <h2 className="font-heading text-4xl font-bold leading-[1.02] tracking-tight md:text-5xl lg:text-6xl">
               Dernières visites
               <br />
               virtuelles

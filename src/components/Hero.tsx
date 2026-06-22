@@ -33,13 +33,13 @@ export default function Hero() {
                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-[#FF6600]">
                       <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z" />
                     </svg>
-                    <span className="text-xs font-bold lowercase tracking-tight text-[#FF6600]">
-                      visites virtuelles 360°
+                    <span className="text-xs font-bold tracking-tight text-[#FF6600]">
+                      Visites virtuelles 360°
                     </span>
                   </div>
 
-                  <h1 className="font-heading font-light tracking-[-0.04em] leading-[0.95] text-[2.5rem] md:text-[56px] text-white">
-                    Vos visites Matterport, livrées en <span className="font-cooper highlight-shine">48h</span>, partout en France
+                  <h1 className="font-heading font-bold tracking-[-0.04em] leading-[0.95] text-[2.5rem] md:text-[56px] text-white">
+                    Vos visites virtuelles et jumeaux numériques livrés en <span className="font-cooper highlight-shine">48h</span>, partout en France
                   </h1>
 
                   <div className="mt-10 flex flex-col sm:flex-row items-center gap-4">

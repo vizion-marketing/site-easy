@@ -261,12 +261,13 @@ export default function Navbar({
 
   // Valeurs de repli (méga-menu) tant qu'aucune taxonomie n'est saisie dans Sanity.
   const DEFAULT_SECTEURS: MenuItem[] = [
+    { title: "Tourisme", desc: "Sites, campings, offices de tourisme et parcs", icon: GlobeMotion },
     { title: "Immobilier", desc: "Valorisez biens et programmes neufs", icon: HomeMotion },
-    { title: "Hôtellerie & Resto", desc: "Faites visiter chambres et espaces", icon: StarMotion },
-    { title: "Commerce & Retail", desc: "Showrooms et boutiques immersives", icon: TagMotion },
-    { title: "Culture & Patrimoine", desc: "Musées, monuments, expositions", icon: BinocularsMotion },
-    { title: "Architecture & BTP", desc: "Projets et chantiers 360°", icon: LayersMotion },
-    { title: "Tourisme & Loisirs", desc: "Sites, campings, parcs naturels", icon: GlobeMotion },
+    { title: "Culture", desc: "Musées, monuments et expositions", icon: BinocularsMotion },
+    { title: "Hôtellerie & restauration", desc: "Chambres, salles et terrasses en 360°", icon: StarMotion },
+    { title: "Éducation", desc: "Campus, écoles et formations immersives", icon: BookmarkMotion },
+    { title: "Commerces et services", desc: "Boutiques, showrooms et agences", icon: TagMotion },
+    { title: "Santé & bien-être", desc: "Cliniques, cabinets, spas et salles de sport", icon: RecommendMotion },
   ];
 
   const DEFAULT_USAGES: MenuItem[] = [
@@ -281,6 +282,34 @@ export default function Navbar({
   // Taxonomies pilotées par Sanity (tags des visites) ; repli sur les défauts si vide.
   const secteursData: MenuItem[] = secteurs.length ? secteurs.map(toMenuItem) : DEFAULT_SECTEURS;
   const usagesData: MenuItem[] = casUsages.length ? casUsages.map(toMenuItem) : DEFAULT_USAGES;
+
+  // Méga-menu "Secteurs" — zone gauche : 3 secteurs phares mis en avant en cartes promo
+  // (même traitement visuel que la carte "Visite pilote"). image = PLACEHOLDER → remplacer
+  // par de vraies vignettes 360°. À brancher plus tard sur Sanity si besoin.
+  const featuredSecteurs = [
+    {
+      title: "Immobilier",
+      desc: "Valorisez vos biens avec des visites virtuelles haute fidélité.",
+      imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=800",
+      href: "#secteur-immobilier",
+    },
+    {
+      title: "Tourisme",
+      desc: "Faites rêver vos visiteurs : sites, campings et parcs en immersion 360°.",
+      imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=800",
+      href: "#secteur-tourisme",
+    },
+    {
+      title: "Éducation",
+      desc: "Ouvrez les portes de votre établissement aux futurs étudiants.",
+      imageUrl: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=800",
+      href: "#secteur-education",
+    },
+  ];
+
+  // Liste "Autres secteurs" (sous les cartes) : tous les secteurs hors ceux déjà mis en avant.
+  const featuredTitles = new Set(featuredSecteurs.map((s) => s.title));
+  const otherSecteurs = secteursData.filter((item) => !featuredTitles.has(item.title));
 
   // Colonne centrale du méga-menu "Cas d'usages" : fonctionnalités produit.
   const featuresData: MenuItem[] = [
@@ -335,7 +364,8 @@ export default function Navbar({
     image: "/easy.png",
   };
 
-  // Navbar : pill blanche flottante, sans ombre.
+  // Navbar : pill en verre liquide (réfraction Chromium via <LiquidGlass>),
+  // frost blanc translucide + ombre douce pour flotter sur fond clair.
   const navItemClass = `group flex items-center gap-1.5 py-2 text-sm font-medium transition-all text-[#0a0a0a] hover:text-[#FF6600]`;
 
   return (
@@ -347,13 +377,14 @@ export default function Navbar({
       <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8 pt-5 sm:pt-6">
         <LiquidGlass
           radius={999}
-          bezel={14}
-          scale={14}
-          blur={5}
-          saturate={1.5}
-          brightness={1.05}
-          tint="rgba(255,255,255,0.45)"
-          className="flex h-16 items-center justify-between px-4 sm:px-6"
+          displacementScale={2.3}
+          elasticity={0.6}
+          blur={6}
+          saturate={1.6}
+          brightness={1.04}
+          contrast={1}
+          shadowIntensity={0.12}
+          className="flex h-16 items-center justify-between border border-black/[0.06] bg-white px-4 sm:px-6"
         >
 
         {/* Gauche : logo + nav */}
@@ -364,7 +395,7 @@ export default function Navbar({
               alt="easyVirtual.tours"
               width={300}
               height={95}
-              className="block h-9 sm:h-10 w-auto"
+              className="block h-9 sm:h-10 w-auto rounded-[500px]"
             />
           </a>
 
@@ -441,12 +472,57 @@ export default function Navbar({
       >
         <div className="mx-auto w-full max-w-[var(--container)] px-6 pt-2 sm:px-8">
           <div className="w-fit max-w-full rounded-2xl border border-gray-100 bg-white shadow-2xl">
-            <div className="px-8 py-10">
-          <div className="grid grid-cols-3 gap-x-4 gap-y-1">
-            {secteursData.map((item) => (
-              <SectorLink key={item.title} item={item} />
-            ))}
-          </div>
+            <div className="w-[880px] max-w-[calc(100vw-4rem)] px-8 py-10">
+              {/* ZONE 1 — Secteurs mis en avant (cartes promo) */}
+              <span className="mb-6 block text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500">
+                Secteurs mis en avant
+              </span>
+              <div className="grid grid-cols-3 gap-5">
+                {featuredSecteurs.map((s) => (
+                  <a
+                    key={s.title}
+                    href={s.href}
+                    className="group/promo relative overflow-hidden rounded-2xl p-5 text-white transition-all duration-300 hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none"
+                    style={MESH_BRAND}
+                  >
+                    <div className="relative block h-32 w-full overflow-hidden rounded-xl bg-black/10">
+                      <img
+                        src={s.imageUrl}
+                        alt=""
+                        className="h-full w-full object-cover transition-transform duration-700 group-hover/promo:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black/15" />
+                    </div>
+                    <div className="relative mt-4">
+                      <h3 className="font-heading text-lg font-bold leading-tight text-white">{s.title}</h3>
+                      <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-white/85">{s.desc}</p>
+                      <div className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-white">
+                        Découvrir
+                        <svg
+                          className="h-3.5 w-3.5 transition-transform duration-300 group-hover/promo:translate-x-1"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                        </svg>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+
+              {/* ZONE 2 — Autres secteurs (sous les cartes) */}
+              <div className="mt-8 border-t border-gray-100 pt-8">
+                <span className="mb-6 block text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400">
+                  Autres secteurs
+                </span>
+                <div className="grid grid-cols-3 gap-x-4 gap-y-1">
+                  {otherSecteurs.map((item) => (
+                    <SectorLink key={item.title} item={item} />
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -155,7 +155,7 @@ export default function AboutSection({
           <div className="flex flex-col items-start lg:col-span-7">
             {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
 
-            <h2 className="mt-6 font-heading text-4xl font-extralight leading-[1.05] tracking-tight md:text-5xl lg:text-6xl">
+            <h2 className="mt-6 font-heading text-3xl font-bold leading-[1.05] tracking-tight md:text-4xl lg:text-5xl">
               {renderHeading(heading) ?? "Qui sommes nous"}
             </h2>
 

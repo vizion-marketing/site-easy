@@ -8,130 +8,147 @@ import {
 } from "react";
 
 /* =========================================================
-   LiquidGlass — effet "verre liquide" réutilisable.
-   (Porté depuis le projet DRIVE — src/components/LiquidGlass.tsx)
+   LiquidGlass : effet "verre liquide" réutilisable.
+
+   ⚠️ PORT EXACT du composant du projet Drive (siteweb-drive.vercel.app),
+   src/components/LiquidGlass.tsx — même algorithme de réfraction, mêmes
+   réglages CSS, afin que le verre soit STRICTEMENT identique entre les sites.
 
    Principe :
-   1. Un <svg> caché définit un <filter> = feImage + feDisplacementMap.
-   2. feImage = une "displacement map" générée au runtime sur un <canvas> :
-      gris neutre (128,128) au centre plat, dévié vers les bords pour
-      encoder la réfraction du biseau (R = décalage X, G = décalage Y).
-   3. L'élément reçoit `backdrop-filter: url(#filter) blur() brightness()…`
-      qui réfracte ce qui se trouve DERRIÈRE lui, + un liseré (rim) en
-      box-shadow/border pour le reflet de verre.
+   1. Une displacement map est générée au runtime sur un <canvas>, EN ESPACE
+      UV NORMALISÉ (0→1). Pour chaque pixel on calcule la distance signée à un
+      rectangle arrondi centré (demi-largeur 0.3, demi-hauteur 0.2, rayon =
+      `elasticity`), on en tire une intensité via deux smoothstep imbriqués,
+      puis on déplace le point vers le centre → c'est la réfraction du biseau.
+      (R = décalage X, G = décalage Y, B = 0.)
+   2. L'amplitude du déplacement (`scale` de feDisplacementMap) est CALCULÉE
+      dynamiquement à partir du déplacement max trouvé × 0.5 × displacementScale.
+      C'est la différence majeure avec l'ancienne version (qui figeait scale = bezel).
+   3. L'élément reçoit `backdrop-filter: url(#filter) blur() contrast()
+      brightness() saturate()` + un box-shadow (drop réglable + inset bas).
 
-   La map est régénérée à la taille réelle de l'élément (ResizeObserver),
-   donc l'effet s'applique à n'importe quel élément, quelle que soit sa taille.
+   La map est régénérée à la taille réelle de l'élément (ResizeObserver,
+   contentRect, clampé à 100px min, comme le déployé).
 
    ⚠️ La réfraction (url() dans backdrop-filter) n'est supportée que par les
-   navigateurs Chromium. Ailleurs (Safari/Firefox) on dégrade proprement sur
-   blur + brightness + saturate + liseré, ce qui reste un rendu "verre" correct.
+   navigateurs Chromium. Ailleurs (Safari/Firefox) la fonction url() est
+   ignorée et il ne reste que blur/contrast/brightness/saturate, rendu "verre"
+   correct en dégradé.
    ========================================================= */
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 
+/** smoothstep : interpolation lissée entre edge0 et edge1 (edge0 peut être > edge1). */
 function smoothstep(edge0: number, edge1: number, x: number) {
   const t = clamp01((x - edge0) / (edge1 - edge0));
   return t * t * (3 - 2 * t);
 }
 
-/** Distance signée à un rectangle arrondi (négative à l'intérieur). px/py sont mesurés depuis le centre. */
+/** Distance signée à un rectangle arrondi centré (négative à l'intérieur). */
 function roundedRectSDF(
-  px: number,
-  py: number,
-  w: number,
-  h: number,
-  r: number,
+  x: number,
+  y: number,
+  halfW: number,
+  halfH: number,
+  radius: number,
 ) {
-  const qx = Math.abs(px) - w / 2 + r;
-  const qy = Math.abs(py) - h / 2 + r;
-  const ax = Math.max(qx, 0);
-  const ay = Math.max(qy, 0);
-  return Math.min(Math.max(qx, qy), 0) + Math.hypot(ax, ay) - r;
+  const qx = Math.abs(x) - halfW + radius;
+  const qy = Math.abs(y) - halfH + radius;
+  return (
+    Math.min(Math.max(qx, qy), 0) +
+    Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) -
+    radius
+  );
+}
+
+export interface LiquidGlassMapOptions {
+  /** Échelle globale de la réfraction (défaut 1). */
+  displacementScale?: number;
+  /** Rayon (espace UV) du rectangle arrondi interne → "souplesse" du biseau (défaut 0.6). */
+  elasticity?: number;
 }
 
 /**
- * Génère la displacement map (data URL PNG) pour un rectangle arrondi.
- * @param width   largeur en px CSS
- * @param height  hauteur en px CSS
- * @param radius  rayon des coins en px
- * @param bezel   épaisseur du biseau réfractif (depuis le bord vers l'intérieur)
+ * Génère la displacement map (data URL PNG) ET l'échelle de déplacement
+ * associée, pour un rectangle de `width`×`height` px.
+ * @returns `{ map, scale }` : `map` = data URL à passer à <feImage href>,
+ *          `scale` = valeur à poser sur <feDisplacementMap scale>.
  */
 export function generateLiquidGlassMap(
   width: number,
   height: number,
-  radius: number,
-  bezel: number,
-): string {
-  if (typeof document === "undefined") return "";
+  { displacementScale = 1, elasticity = 0.6 }: LiquidGlassMapOptions = {},
+): { map: string; scale: number } {
+  if (typeof document === "undefined") return { map: "", scale: 0 };
 
-  const w = Math.max(1, Math.round(width));
-  const h = Math.max(1, Math.round(height));
-  const r = Math.min(radius, Math.min(w, h) / 2);
-  const b = Math.max(1, Math.min(bezel, Math.min(w, h) / 2));
+  const w = Math.max(1, Math.floor(width));
+  const h = Math.max(1, Math.floor(height));
 
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d");
-  if (!ctx) return "";
+  if (!ctx) return { map: "", scale: 0 };
 
-  const img = ctx.createImageData(w, h);
-  const data = img.data;
+  const data = new Uint8ClampedArray(w * h * 4);
+  const raw: number[] = [];
+  let maxScale = 0;
 
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const px = x - w / 2 + 0.5;
-      const py = y - h / 2 + 0.5;
-      const d = roundedRectSDF(px, py, w, h, r);
+  // 1ère passe : déplacement (en px) de chaque pixel + suivi de l'amplitude max.
+  for (let i = 0; i < data.length; i += 4) {
+    const x = (i / 4) % w;
+    const y = Math.floor(i / 4 / w);
 
-      // Intensité : max au bord (depth = 0), nulle à `bezel` vers l'intérieur.
-      let t = 0;
-      if (d < 0) t = smoothstep(0, 1, 1 - -d / b);
+    const cx = x / w - 0.5; // coord. centrée [-0.5 .. 0.5]
+    const cy = y / h - 0.5;
 
-      // Normale entrante (gradient de la SDF, inversé) → direction de réfraction.
-      const gx =
-        roundedRectSDF(px + 1, py, w, h, r) -
-        roundedRectSDF(px - 1, py, w, h, r);
-      const gy =
-        roundedRectSDF(px, py + 1, w, h, r) -
-        roundedRectSDF(px, py - 1, w, h, r);
-      const len = Math.hypot(gx, gy) || 1;
-      const ix = -gx / len;
-      const iy = -gy / len;
+    const sdf = roundedRectSDF(cx, cy, 0.3, 0.2, elasticity) - 0.15;
+    const intensity = smoothstep(0, 1, smoothstep(0.8, 0, sdf));
 
-      const idx = (y * w + x) * 4;
-      data[idx] = 128 + ix * t * 127; // R → décalage horizontal
-      data[idx + 1] = 128 + iy * t * 127; // G → décalage vertical
-      data[idx + 2] = 128; // B inutilisé
-      data[idx + 3] = 255; // A
-    }
+    const dispX = cx * intensity + 0.5;
+    const dispY = cy * intensity + 0.5;
+
+    const dx = dispX * w - x;
+    const dy = dispY * h - y;
+
+    maxScale = Math.max(maxScale, Math.abs(dx), Math.abs(dy));
+    raw.push(dx, dy);
   }
 
-  ctx.putImageData(img, 0, 0);
-  return canvas.toDataURL();
+  maxScale *= 0.5 * displacementScale;
+  if (maxScale === 0) maxScale = 1; // garde-fou anti-division par zéro
+
+  // 2ème passe : encodage normalisé (R = dx, G = dy, B = 0).
+  let k = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    data[i] = 255 * (raw[k++] / maxScale + 0.5);
+    data[i + 1] = 255 * (raw[k++] / maxScale + 0.5);
+    data[i + 2] = 0;
+    data[i + 3] = 255;
+  }
+
+  ctx.putImageData(new ImageData(data, w, h), 0, 0);
+  return { map: canvas.toDataURL(), scale: maxScale };
 }
 
 export interface LiquidGlassProps {
   children?: ReactNode;
-  /** Rayon des coins en px (défaut 24). */
+  /** Rayon des coins en px (défaut 20). */
   radius?: number;
-  /** Épaisseur du biseau réfractif en px (défaut 16). */
-  bezel?: number;
-  /** Force de la réfraction (échelle feDisplacementMap). Défaut = `bezel`. */
-  scale?: number;
-  /** Flou de l'arrière-plan en px (défaut 2). */
+  /** Flou de l'arrière-plan en px (défaut 0.25). */
   blur?: number;
-  /** Luminosité de l'arrière-plan (défaut 1.1). */
+  /** Contraste de l'arrière-plan (défaut 1.2). */
+  contrast?: number;
+  /** Luminosité de l'arrière-plan (défaut 1.05). */
   brightness?: number;
   /** Saturation de l'arrière-plan (défaut 1.1). */
   saturate?: number;
-  /** Contraste de l'arrière-plan (défaut 1). */
-  contrast?: number;
-  /** Affiche le liseré de verre (border + reflets inset). Défaut true. */
-  rim?: boolean;
-  /** Teinte de fond optionnelle, ex. "rgba(255,255,255,0.06)". */
-  tint?: string;
+  /** Opacité du drop-shadow `0 4px 8px` (défaut 0.25 ; mettre 0 pour le retirer). */
+  shadowIntensity?: number;
+  /** Échelle globale de la réfraction (défaut 1). */
+  displacementScale?: number;
+  /** Souplesse du biseau réfractif (défaut 0.6). */
+  elasticity?: number;
   className?: string;
   style?: CSSProperties;
 }
@@ -139,70 +156,56 @@ export interface LiquidGlassProps {
 /**
  * Conteneur appliquant l'effet "verre liquide" à son arrière-plan.
  * Place n'importe quel contenu en `children` (il reste net, au-dessus du verre).
- *
- * @example
- * <LiquidGlass radius={30} bezel={18} className="px-6 py-3">
- *   <nav>…</nav>
- * </LiquidGlass>
+ * Le layout (taille, padding, flex…) est laissé à `className`/`style`.
  */
 export function LiquidGlass({
   children,
-  radius = 24,
-  bezel = 16,
-  scale,
-  blur = 2,
-  brightness = 1.1,
+  radius = 20,
+  blur = 0.25,
+  contrast = 1.2,
+  brightness = 1.05,
   saturate = 1.1,
-  contrast = 1,
-  rim = true,
-  tint,
+  shadowIntensity = 0.25,
+  displacementScale = 1,
+  elasticity = 0.6,
   className,
   style,
 }: LiquidGlassProps) {
   const rawId = useId();
-  const filterId = `liquid-glass-${rawId.replace(/[^a-zA-Z0-9]/g, "")}`;
+  const baseId = `liquid-glass-${rawId.replace(/[^a-zA-Z0-9]/g, "")}`;
+  const filterId = `${baseId}_filter`;
+  const mapId = `${baseId}_map`;
 
   const ref = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ width: 0, height: 0 });
+  const [size, setSize] = useState({ width: 300, height: 200 });
   const [map, setMap] = useState("");
+  const [scale, setScale] = useState(0);
 
-  // Suit la taille réelle de l'élément.
+  // Suit la taille réelle de l'élément (contentRect, min 100px, comme le déployé).
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const update = () =>
-      setSize({ width: el.clientWidth, height: el.clientHeight });
-    update();
-    const ro = new ResizeObserver(update);
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        setSize({ width: Math.max(width, 100), height: Math.max(height, 100) });
+      }
+    });
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
-  // Régénère la map quand la géométrie change.
+  // Régénère la map + l'échelle quand la géométrie ou les réglages changent.
   useEffect(() => {
-    if (size.width === 0 || size.height === 0) return;
-    setMap(generateLiquidGlassMap(size.width, size.height, radius, bezel));
-  }, [size.width, size.height, radius, bezel]);
+    const result = generateLiquidGlassMap(size.width, size.height, {
+      displacementScale,
+      elasticity,
+    });
+    setMap(result.map);
+    setScale(result.scale);
+  }, [size.width, size.height, displacementScale, elasticity]);
 
-  // Garde-fou cross-navigateur : on relit le style calculé ; si le navigateur
-  // n'a pas accepté le filtre url() (Safari/Firefox), on retombe sur blur/…
-  // seuls — et toute règle CSS de fallback de l'appelant reprend la main.
-  const [supported, setSupported] = useState(true);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || !map) return;
-    const cs = getComputedStyle(el);
-    const ok = (
-      cs.getPropertyValue("backdrop-filter") ||
-      cs.getPropertyValue("-webkit-backdrop-filter") ||
-      ""
-    ).includes("url(");
-    setSupported(ok);
-  }, [map, filterId]);
-
-  const dispScale = scale ?? bezel;
-  const base = `blur(${blur}px) brightness(${brightness}) saturate(${saturate}) contrast(${contrast})`;
-  const filter = supported && map ? `url(#${filterId}) ${base}` : base;
+  const filter = `url(#${filterId}) blur(${blur}px) contrast(${contrast}) brightness(${brightness}) saturate(${saturate})`;
 
   return (
     <div
@@ -210,18 +213,11 @@ export function LiquidGlass({
       className={className}
       style={{
         position: "relative",
-        borderRadius: radius,
         overflow: "hidden",
+        borderRadius: radius,
+        boxShadow: `0 4px 8px rgba(0, 0, 0, ${shadowIntensity}), 0 -10px 25px inset rgba(0, 0, 0, 0.15)`,
         backdropFilter: filter,
         WebkitBackdropFilter: filter,
-        ...(tint ? { backgroundColor: tint } : null),
-        ...(rim
-          ? {
-              border: "1px solid rgba(255,255,255,0.25)",
-              boxShadow:
-                "0 4px 16px rgba(0,0,0,0.12), inset 0 1px 1px rgba(255,255,255,0.30), inset 0 -8px 24px rgba(0,0,0,0.15)",
-            }
-          : null),
         ...style,
       }}
     >
@@ -246,21 +242,16 @@ export function LiquidGlass({
             width={size.width}
             height={size.height}
           >
-            {map ? (
-              <feImage
-                href={map}
-                x={0}
-                y={0}
-                width={size.width}
-                height={size.height}
-                result="map"
-                preserveAspectRatio="none"
-              />
-            ) : null}
+            <feImage
+              id={mapId}
+              href={map || undefined}
+              width={size.width}
+              height={size.height}
+            />
             <feDisplacementMap
               in="SourceGraphic"
-              in2="map"
-              scale={map ? dispScale : 0}
+              in2={mapId}
+              scale={scale}
               xChannelSelector="R"
               yChannelSelector="G"
             />

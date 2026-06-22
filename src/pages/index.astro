@@ -4,7 +4,11 @@ import Navbar from "../components/Navbar.tsx";
 import Hero from "../components/Hero.tsx";
 import LatestTours from "../components/LatestTours.tsx";
 import AboutBento from "../components/AboutBento.tsx";
+import VirtualTourPilot from "../components/VirtualTourPilot.tsx";
+import UseCases from "../components/UseCases.tsx";
+import HowItWorks from "../components/HowItWorks.tsx";
 import Franchises from "../components/Franchises.tsx";
+import ContactCTA from "../components/ContactCTA.tsx";
 import { sanityClient } from "sanity:client";
 import { urlFor } from "../sanity/lib/image";
 import {
@@ -162,6 +166,10 @@ const displayFranchisees = franchisees.length ? franchisees : placeholderFranchi
   <Navbar client:load tours={displayTours} secteurs={secteurs} casUsages={casUsages} />
   <Hero client:visible />
   <AboutBento client:visible />
+  <VirtualTourPilot client:visible />
+  <UseCases client:visible />
+  <HowItWorks client:visible />
   <LatestTours client:visible tours={displayTours} />
   <Franchises client:visible franchisees={displayFranchisees} />
+  <ContactCTA client:visible />
 </BaseLayout>

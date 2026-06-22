@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "gemini-design-mcp": {
+      "command": "npx",
+      "args": ["-y", "gemini-design-mcp@latest"],
+      "env": {
+        "API_KEY": "PASTE_YOUR_KEY_HERE (clé Google AI Studio 'AIza...' ou clé plateforme 'gd_...')"
+      }
+    }
+  }
+}
