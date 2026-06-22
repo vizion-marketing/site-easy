@@ -283,6 +283,11 @@ export default function Navbar({
   const secteursData: MenuItem[] = secteurs.length ? secteurs.map(toMenuItem) : DEFAULT_SECTEURS;
   const usagesData: MenuItem[] = casUsages.length ? casUsages.map(toMenuItem) : DEFAULT_USAGES;
 
+  // Méga-menu "Dernières visites" : 1 visite "coup de cœur" mise en avant
+  // (1re visite — branchable plus tard sur un flag Sanity dédié) + 4 dernières visites.
+  const coupDeCoeur: TourItem | undefined = tours[0];
+  const latestTours: TourItem[] = tours.slice(1, 5);
+
   // Méga-menu "Secteurs" — zone gauche : 3 secteurs phares mis en avant en cartes promo
   // (même traitement visuel que la carte "Visite pilote"). image = PLACEHOLDER → remplacer
   // par de vraies vignettes 360°. À brancher plus tard sur Sanity si besoin.
@@ -699,20 +704,84 @@ export default function Navbar({
         onMouseEnter={() => setActiveMenu("visites")}
       >
         <div className="mx-auto w-full max-w-[var(--container)] px-6 pt-2 sm:px-8">
-          <div className="w-fit max-w-full rounded-2xl border border-gray-100 bg-white shadow-2xl">
+          <div className="w-full rounded-2xl border border-gray-100 bg-white shadow-2xl">
             <div className="px-8 py-10">
-          <span className="text-[11px] tracking-[0.2em] font-semibold text-gray-500 uppercase block mb-6">
-            Dernières visites
-          </span>
-          <div className="grid grid-cols-4 gap-6">
-            {tours.map((tour) => (
-              <TourCard key={tour.title} tour={tour} />
-            ))}
+          <div className="grid grid-cols-3 items-stretch gap-8">
+            {/* Colonne gauche : visite coup de cœur — UNE seule visite « mise en avant »,
+               grande tuile verticale qui remplit toute la hauteur de sa colonne
+               (même largeur qu'une carte de droite). Titre en surimpression en bas. */}
+            {coupDeCoeur && (
+              <div className="col-span-1 flex flex-col">
+                <span className="mb-6 block text-[11px] font-bold uppercase tracking-[0.2em] text-[#FF6600]">
+                  Sélection premium
+                </span>
+                <a
+                  href={coupDeCoeur.href}
+                  className="group relative flex min-h-[320px] flex-1 overflow-hidden rounded-2xl bg-zinc-100 shadow-[0_2px_8px_-3px_rgba(10,10,10,0.10),0_22px_48px_-18px_rgba(10,10,10,0.14)] transition-all duration-500 hover:shadow-[0_4px_12px_-3px_rgba(10,10,10,0.14),0_32px_64px_-20px_rgba(10,10,10,0.20)]"
+                >
+                  {coupDeCoeur.imageUrl && (
+                    <img
+                      src={coupDeCoeur.imageUrl}
+                      alt={coupDeCoeur.title}
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-105"
+                    />
+                  )}
+                  {/* Voile dégradé pour la lisibilité du titre */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+
+                  {/* Badge coup de cœur */}
+                  <div className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#FF6600] shadow-sm backdrop-blur-sm">
+                    <svg className="h-3 w-3 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    </svg>
+                    Coup de cœur
+                  </div>
+
+                  {/* Bouton play centré */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 text-[#FF6600] shadow-lg transition-transform group-hover:scale-110">
+                      <svg className="ml-0.5 h-7 w-7 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Titre + méta en surimpression (bas) */}
+                  <div className="absolute inset-x-0 bottom-0 p-5">
+                    <h4 className="font-heading text-lg font-bold leading-tight text-white">
+                      {coupDeCoeur.title}
+                    </h4>
+                    {[coupDeCoeur.client, coupDeCoeur.location].filter(Boolean).length > 0 && (
+                      <p className="mt-1 text-sm text-white/80">
+                        {[coupDeCoeur.client, coupDeCoeur.location].filter(Boolean).join(" · ")}
+                      </p>
+                    )}
+                  </div>
+                </a>
+              </div>
+            )}
+
+            {/* Colonne droite : grille des 4 dernières visites (2 colonnes de même
+               largeur que la coup de cœur). */}
+            <div className={coupDeCoeur ? "col-span-2" : "col-span-3"}>
+              <span className="mb-6 block text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500">
+                Dernières visites
+              </span>
+              <div className="grid grid-cols-2 gap-x-8 gap-y-10">
+                {latestTours.slice(0, 4).map((tour) => (
+                  <TourCard key={tour.title} tour={tour} />
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="mt-8 pt-6 border-t border-gray-50 flex items-center justify-between">
+
+          <div className="mt-12 flex items-center justify-between border-t border-gray-100 pt-8">
             <span className="text-sm text-gray-500">Découvrez toutes nos réalisations 360°</span>
-            <a href="#visites" className="text-sm font-bold text-[#FF6600] hover:underline">
-              Voir toutes les visites →
+            <a href="#visites" className="group inline-flex items-center gap-2 text-sm font-bold text-[#FF6600] hover:underline">
+              Voir toutes les visites
+              <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
             </a>
           </div>
             </div>
@@ -745,11 +814,18 @@ export default function Navbar({
                   <div className={`overflow-hidden transition-all duration-300 ${mobileExpanded === link.id ? "max-h-[800px] pb-6" : "max-h-0"}`}>
                     <div className="grid gap-4 pl-4">
                       {link.id === "visites"
-                        ? tours.map((tour) => (
-                            <a key={tour.title} href={tour.href} className="flex flex-col py-1">
-                              <span className="text-sm font-bold text-[#0a0a0a]">{tour.title}</span>
+                        ? [coupDeCoeur, ...latestTours].filter(Boolean).map((tour, i) => (
+                            <a key={tour!.title} href={tour!.href} className="flex flex-col py-1">
+                              <span className="flex items-center gap-1.5 text-sm font-bold text-[#0a0a0a]">
+                                {i === 0 && coupDeCoeur && (
+                                  <svg className="h-3.5 w-3.5 shrink-0 fill-[#FF6600]" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                  </svg>
+                                )}
+                                {tour!.title}
+                              </span>
                               <span className="text-xs text-gray-500">
-                                {[tour.client, tour.location].filter(Boolean).join(" · ")}
+                                {[tour!.client, tour!.location].filter(Boolean).join(" · ")}
                               </span>
                             </a>
                           ))

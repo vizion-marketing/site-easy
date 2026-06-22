@@ -18,7 +18,6 @@ type Feature = {
 };
 
 type Props = {
-  eyebrow?: string;
   titlePart1?: string;
   titleHighlight?: string;
   titlePart2?: string;
@@ -39,14 +38,9 @@ type Props = {
   primaryHref?: string;
   secondaryLabel?: string;
   secondaryHref?: string;
-  /* Overlay d'intro affiché par-dessus la visite au chargement (teaser créateurs). */
-  introEyebrow?: string;
-  introTitlePre?: string;
+  /* Pastille créateurs / abonnés de l'écran-titre orange (couche 1). */
   introNames?: string;
   introSubscribers?: string;
-  introTitlePost?: string;
-  introText?: string;
-  introButtonLabel?: string;
   /* Étiquettes de fonctionnalités superposées en bas de la visite. */
   features?: Feature[];
 };
@@ -93,7 +87,6 @@ const BRAND_DIAGONAL = {
    hero) ; le bouton de l'écran-titre pointe vers #la-visite (couche 2). Section
    éditoriale statique : props optionnelles (défauts FR), branchables à Sanity plus tard. */
 export default function VirtualTourPilot({
-  eyebrow = "Démonstration en direct",
   titlePart1 = "Vous vous apprêtez à plonger au cœur d'une ",
   titleHighlight = "visite virtuelle",
   titlePart2 = "…",
@@ -106,17 +99,12 @@ export default function VirtualTourPilot({
   // Branchable plus tard sur Sanity (champ `tourUrl`).
   embedUrl = "https://my.easyvirtual.tours/tour/visite-virtuelle",
   embedAddress = "my.easyvirtual.tours/tour/visite-virtuelle",
-  primaryLabel = "Demander ma visite virtuelle",
-  primaryHref = "#contact",
+  primaryLabel = "Découvrir les cas d'usages",
+  primaryHref = "#cas-dusages",
   secondaryLabel = "Voir d'autres réalisations",
   secondaryHref = "#visites",
-  introEyebrow = "Visite exclusive",
-  introTitlePre = "La maison des YouTubers",
   introNames = "Rachel & Emilien",
   introSubscribers = "2,4 M",
-  introTitlePost = "",
-  introText = "Vous vous apprêtez à explorer la véritable maison de créateurs célèbres comme Rachel & Emilien — et bien d'autres. Déplacez-vous librement, pièce par pièce, comme si vous y étiez.",
-  introButtonLabel = "Démarrer la visite",
   features = [
     {
       title: "Navigation libre",
@@ -154,9 +142,11 @@ export default function VirtualTourPilot({
 }: Props) {
   // Overlay d'intro : visible au départ, masqué (fondu) au clic sur le bouton.
   const [introVisible, setIntroVisible] = useState(true);
+  // Panneau « fonctionnalités » : déplié au départ ; le replier fait s'agrandir la visite.
+  const [featuresOpen, setFeaturesOpen] = useState(true);
 
   return (
-    <section id="visite-virtuelle" className="relative">
+    <section id="visite-virtuelle" className="relative overflow-clip">
 
       {/* ═══════ COUCHE 1 — ÉCRAN-TITRE ORANGE (sticky, plein écran) ═══════ */}
       <div
@@ -174,16 +164,6 @@ export default function VirtualTourPilot({
 
             {/* COLONNE GAUCHE — texte (blanc sur orange) */}
             <div className="z-10 flex flex-col items-start gap-8 lg:col-span-7">
-              {/* Eyebrow */}
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 backdrop-blur-sm">
-                <svg className="h-3 w-3 fill-current text-white" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 2 14 10 22 12 14 14 12 22 10 14 2 12 10 10Z" />
-                </svg>
-                <span className="text-[10px] font-bold uppercase leading-none tracking-widest text-white">
-                  {eyebrow}
-                </span>
-              </div>
-
               {/* Titre XXL */}
               <h2 className="font-heading text-4xl font-extralight leading-[1.05] tracking-tight text-white md:text-6xl lg:text-7xl">
                 {titlePart1}
@@ -272,7 +252,7 @@ export default function VirtualTourPilot({
               <img
                 src={photo}
                 alt={photoAlt}
-                className="relative z-30 w-full max-w-[620px] translate-x-4 translate-y-16 lg:w-[920px] lg:max-w-none lg:translate-x-24 lg:translate-y-44"
+                className="relative z-30 w-full max-w-[620px] translate-x-4 translate-y-2 lg:w-[920px] lg:max-w-none lg:translate-x-24 lg:translate-y-16"
               />
             </div>
           </div>
@@ -300,7 +280,7 @@ export default function VirtualTourPilot({
         <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
 
           {/* DISPOSITIF UNIFIÉ — Écran de navigation interactif (Browser Mockup) XXL */}
-          <div className={`group relative flex flex-col overflow-hidden rounded-3xl bg-white transition-shadow duration-500 lg:h-[680px] xl:h-[780px] 2xl:h-[820px] ${TILE_SHADOW}`}>
+          <div className={`group relative flex flex-col overflow-hidden rounded-3xl bg-white transition-shadow duration-500 lg:h-[600px] xl:h-[700px] 2xl:h-[740px] ${TILE_SHADOW}`}>
 
             {/* Barre supérieure « navigateur » unifiée sur toute la largeur */}
             <div className="z-20 flex h-12 w-full shrink-0 items-center border-b border-gray-200/70 bg-white px-5">
@@ -318,13 +298,33 @@ export default function VirtualTourPilot({
                   {embedAddress}
                 </div>
               </div>
-              <div className="flex w-10 justify-end" aria-hidden="true">
-                <span className="h-1.5 w-4 rounded-full bg-gray-100" />
-              </div>
+              {/* Toggle du panneau « fonctionnalités » */}
+              <button
+                type="button"
+                onClick={() => setFeaturesOpen((v) => !v)}
+                aria-expanded={featuresOpen}
+                aria-controls="tour-features-panel"
+                className={`group ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition-all duration-300 active:scale-95 motion-reduce:transition-none ${
+                  featuresOpen
+                    ? "bg-[#FF6600] text-white shadow-sm shadow-orange-900/10"
+                    : "border border-[#FF6600]/30 text-[#FF6600] hover:bg-[#fff4ec]"
+                }`}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden="true">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <line x1="15" y1="3" x2="15" y2="21" />
+                </svg>
+                <span className="hidden whitespace-nowrap sm:inline">
+                  {featuresOpen ? "Masquer" : "Fonctionnalités"}
+                </span>
+              </button>
             </div>
 
-            {/* Corps immersif : visite en pleine largeur + overlay de fonctionnalités en bas */}
-            <div className="relative min-h-[480px] flex-1 overflow-hidden bg-zinc-100 sm:min-h-[560px]">
+            {/* Corps : flex — colonne visite (rétrécit) + panneau « fonctionnalités » */}
+            <div className="relative flex flex-1 flex-col overflow-hidden lg:flex-row">
+
+              {/* COLONNE VISITE — iframe plein écran (rétrécit quand le panneau s'ouvre) */}
+              <div className="relative min-h-[480px] w-full flex-1 overflow-hidden bg-zinc-100 sm:min-h-[560px]">
               {/* Visite interactive plein écran */}
               <iframe
                 src={embedUrl}
@@ -360,70 +360,164 @@ export default function VirtualTourPilot({
                 </div>
               </div>
 
-              {/* OVERLAY D'INTRO — teaser créateurs, masqué (fondu) au clic sur le bouton */}
+              {/* OVERLAY PLAYER — gros bouton play ; masqué (fondu) au clic pour révéler la visite */}
               <div
-                className={`absolute inset-0 z-30 flex items-center justify-center overflow-hidden p-6 transition-opacity duration-500 ${introVisible ? "opacity-100" : "pointer-events-none opacity-0"}`}
+                className={`absolute inset-0 z-30 flex flex-col items-center justify-center overflow-hidden p-6 transition-opacity duration-700 ${introVisible ? "opacity-100" : "pointer-events-none opacity-0"}`}
                 aria-hidden={!introVisible}
               >
-                {/* Voile sombre + flou : la visite est teasée derrière */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/60 backdrop-blur-sm" />
+                {/* Voile sombre immersif + flou de poster */}
+                <div className="absolute inset-0 bg-black/35 backdrop-blur-[6px]" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
 
-                {/* Halo décoratif */}
-                <div className="pointer-events-none absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FF6600]/20 blur-[120px]" />
-
-                {/* Carte glass — bornée à 88% de la hauteur de la visite, défilable si besoin */}
-                <div className="relative z-10 flex max-h-[88%] w-full max-w-[540px] flex-col overflow-y-auto rounded-3xl border border-white/15 bg-white/10 p-6 text-center shadow-[0_2px_8px_-3px_rgba(10,10,10,0.10),0_22px_48px_-18px_rgba(10,10,10,0.14)] backdrop-blur-xl [scrollbar-color:rgba(255,255,255,0.3)_transparent] [scrollbar-width:thin] md:p-10">
-                  {/* Eyebrow */}
-                  <div className="mb-4 flex justify-center">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 py-1.5 pl-2.5 pr-3.5 backdrop-blur-md">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-[#FF6600]" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-                      </svg>
-                      <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white">{introEyebrow}</span>
+                {/* Badge supérieur discret */}
+                <div className="relative z-10 mb-12">
+                  <div className="inline-flex items-center gap-2.5 rounded-full border border-white/25 bg-black/20 px-4 py-2 backdrop-blur-xl">
+                    <div className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full motion-safe:animate-ping rounded-full bg-[#FF6600] opacity-75"></span>
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-[#FF6600]"></span>
                     </div>
-                  </div>
-
-                  {/* Header : icône 360 + titre */}
-                  <div className="mb-4 space-y-3">
-                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/20">
-                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M12 2v3m0 14v3M5 12H2m20 0h-3" />
-                        <path d="m17 7-2.12 2.12m-5.76 5.76L7 17m10 0-2.12-2.12m-5.76-5.76L7 7" />
-                        <circle cx="12" cy="12" r="3" />
-                        <path d="M12 7a5 5 0 0 1 5 5" />
-                      </svg>
-                    </div>
-
-                    <h3 className="font-heading text-2xl font-bold leading-tight tracking-tight text-white md:text-3xl lg:text-4xl">
-                      {introTitlePre} <span className="font-cooper text-[#FF6600]">{introNames}</span> {introTitlePost}
-                    </h3>
-                  </div>
-
-                  <p className="mx-auto mb-6 max-w-sm text-lg leading-relaxed text-white/80">{introText}</p>
-
-                  {/* Action */}
-                  <div className="flex flex-col items-center gap-4">
-                    <button
-                      type="button"
-                      onClick={() => setIntroVisible(false)}
-                      className="group relative inline-flex items-center gap-3 overflow-hidden rounded-full bg-[#FF6600] px-10 py-4 font-heading text-lg font-bold text-white transition-all duration-300 hover:bg-[#e85c00] hover:shadow-xl hover:shadow-[#FF6600]/30 active:scale-95 motion-reduce:transition-none"
-                    >
-                      <span>{introButtonLabel}</span>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:translate-x-1.5 motion-reduce:transform-none" aria-hidden="true">
-                        <path d="M5 12h14m-7-7 7 7-7 7" />
-                      </svg>
-                    </button>
-
-                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/50">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M15 18H9a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2Z" />
-                        <path d="M12 12v.01" />
-                      </svg>
-                      <span>Cliquez &amp; glissez pour explorer</span>
-                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white">
+                      Visite pilote <span className="mx-1 opacity-40">·</span> interactive
+                    </span>
                   </div>
                 </div>
+
+                {/* PLAY BUTTON HERO */}
+                <div className="relative z-10">
+                  {/* Anneau de pulsation extérieur */}
+                  <div className="absolute inset-0 -m-4 motion-safe:animate-pulse rounded-full border border-white/10 ring-4 ring-white/5 motion-reduce:animate-none" />
+
+                  <button
+                    type="button"
+                    onClick={() => setIntroVisible(false)}
+                    aria-label="Démarrer la visite virtuelle"
+                    className="group relative flex h-24 w-24 items-center justify-center rounded-full bg-[#FF6600] text-white shadow-[0_2px_8px_-3px_rgba(10,10,10,0.10),0_22px_48px_-18px_rgba(10,10,10,0.14)] transition-all duration-300 hover:scale-110 hover:bg-[#e85c00] hover:shadow-[0_0_40px_-5px_rgba(255,102,0,0.5)] active:scale-95 md:h-28 md:w-28 motion-reduce:transition-none"
+                    style={{ backgroundImage: "linear-gradient(40deg, #e85c00 0%, #FF6600 52%, #ff8a3d 100%)" }}
+                  >
+                    {/* Icône Play Triangle */}
+                    <svg
+                      width="36"
+                      height="36"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="ml-1 transition-transform duration-300 group-hover:scale-110 motion-reduce:transform-none"
+                      aria-hidden="true"
+                    >
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+
+                    {/* Effet de brillance/glass au survol */}
+                    <div className="absolute inset-0 rounded-full bg-white/0 transition-colors duration-300 group-hover:bg-white/5" />
+                  </button>
+                </div>
+
+                {/* Hint Label */}
+                <div className="relative z-10 mt-10 flex flex-col items-center gap-3">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/70">
+                    Cliquez pour explorer en 360°
+                  </span>
+                  <div className="h-px w-8 bg-white/20" />
+                </div>
               </div>
+              </div>
+
+              {/* PANNEAU FONCTIONNALITÉS — se déplie à droite ; la visite rétrécit.
+                 Largeur animée sur lg ; empilé (hauteur animée) sur mobile. */}
+              <aside
+                id="tour-features-panel"
+                aria-hidden={!featuresOpen}
+                className={`shrink-0 overflow-hidden transition-all duration-500 ease-in-out ${
+                  featuresOpen
+                    ? "max-h-[500px] w-full lg:max-h-none lg:w-[400px]"
+                    : "max-h-0 w-full lg:max-h-none lg:w-0"
+                }`}
+              >
+                <div className="flex h-[500px] w-full flex-col border-gray-200/70 bg-white border-t lg:h-full lg:w-[400px] lg:border-l lg:border-t-0">
+                  {/* En-tête */}
+                  <div className="flex items-start justify-between border-b border-gray-100 p-6">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5 text-[#FF6600]" aria-hidden="true">
+                          <path d="M12 0 14.59 9.41 24 12 14.59 14.59 12 24 9.41 14.59 0 12 9.41 9.41 12 0Z" />
+                        </svg>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6600]">
+                          Fonctionnalités
+                        </span>
+                      </div>
+                      <h3 className="font-heading text-xl font-bold tracking-tight text-[#0a0a0a]">
+                        Tout ce que la visite permet
+                      </h3>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFeaturesOpen(false)}
+                      className="group flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-50 text-gray-400 transition-all duration-300 hover:bg-[#fff4ec] hover:text-[#FF6600] active:scale-90 motion-reduce:transition-none"
+                      aria-label="Fermer le panneau des fonctionnalités"
+                    >
+                      <svg className="h-5 w-5 transition-transform duration-300 group-hover:rotate-90 motion-reduce:transform-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Liste scrollable des 8 fonctionnalités */}
+                  <div className="ev-tour-scroll flex-1 space-y-4 overflow-y-auto p-5">
+                    {features.map((feature, idx) => {
+                      const Icon = FEATURE_ICONS[idx] ?? FEATURE_ICONS[0];
+                      return (
+                        <div
+                          key={feature.title}
+                          className={`group flex gap-4 rounded-2xl bg-[#fdfaf6] p-4 transition-shadow duration-300 ${TILE_SHADOW}`}
+                        >
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#fff4ec] transition-transform duration-500 group-hover:scale-110 motion-reduce:transition-none">
+                            <span className="cds-motion-icon cds-motion-icon--brand">
+                              <Icon size={22} />
+                            </span>
+                          </div>
+                          <div className="space-y-1">
+                            <h4 className="font-heading text-[15px] font-bold text-[#0a0a0a]">{feature.title}</h4>
+                            <p className="text-[13px] leading-relaxed text-gray-600">{feature.description}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </aside>
+
+              {/* POIGNÉE — replier / déplier le panneau ; flèche centrée verticalement,
+                 à cheval sur la bordure visite ↔ panneau. Suit la largeur animée du panneau
+                 (à cheval sur la couture quand ouvert ; collée au bord droit quand replié).
+                 Desktop uniquement (sur mobile le panneau s'empile : on garde le toggle de la
+                 barre + le bouton « ✕ » de l'en-tête). */}
+              <button
+                type="button"
+                onClick={() => setFeaturesOpen((v) => !v)}
+                aria-expanded={featuresOpen}
+                aria-controls="tour-features-panel"
+                aria-label={featuresOpen ? "Replier le panneau des fonctionnalités" : "Déplier le panneau des fonctionnalités"}
+                className={`group absolute top-1/2 z-30 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full ring-2 ring-white shadow-[0_2px_8px_-3px_rgba(10,10,10,0.10),0_22px_48px_-18px_rgba(10,10,10,0.14)] transition-all duration-500 ease-in-out hover:scale-110 hover:shadow-[0_4px_12px_-3px_rgba(10,10,10,0.14),0_32px_64px_-20px_rgba(10,10,10,0.20)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6600] focus-visible:ring-offset-2 active:scale-95 motion-reduce:transition-none lg:flex ${
+                  featuresOpen
+                    ? "right-[400px] translate-x-1/2 text-white"
+                    : "right-3 translate-x-0 border border-gray-100 bg-white text-[#FF6600]"
+                }`}
+                style={featuresOpen ? { backgroundImage: "linear-gradient(40deg, #e85c00 0%, #FF6600 52%, #ff8a3d 100%)" } : undefined}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`h-[18px] w-[18px] transition-transform duration-300 ${featuresOpen ? "" : "rotate-180"}`}
+                  aria-hidden="true"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </button>
+
             </div>
           </div>
 
@@ -441,10 +535,10 @@ export default function VirtualTourPilot({
             </a>
 
             <a
-              href={secondaryHref}
+              href="#contact"
               className="group inline-flex items-center gap-2 font-semibold text-[#FF6600] underline decoration-[#FF6600]/40 underline-offset-4 transition-all hover:decoration-[#FF6600]"
             >
-              {secondaryLabel}
+              Nous commander une visite virtuelle
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transform-none" aria-hidden="true">
                 <line x1="5" y1="12" x2="19" y2="12" />
                 <polyline points="12 5 19 12 12 19" />

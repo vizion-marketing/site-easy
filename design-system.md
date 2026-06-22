@@ -136,8 +136,14 @@ hover:shadow-[0_4px_12px_-3px_rgba(10,10,10,0.14),0_32px_64px_-20px_rgba(10,10,1
   voile texte `absolute inset-0 bg-gradient-to-t from-black via-black/55 to-transparent`
   (ou `via-black/45` quand la tuile est plus courte), contenu blanc en bas
   (`absolute inset-x-0 bottom-0 p-8 md:p-10 text-white`).
-- **Tuile crème (contenu)** : `bg-[#fdfaf6] rounded-2xl`, titre `font-heading text-2xl
-  text-[#0a0a0a]`, paragraphe `text-gray-600 leading-relaxed`.
+- **Tuile crème (contenu) — CARTE PAR DÉFAUT.** C'est **le** style de carte du projet :
+  sur un **fond de section blanc**, toute carte/encart de contenu utilise par défaut ce motif,
+  identique à la tuile « +30 agences partout en France » du bento (`AboutBento`, TUILE 3).
+  Recette exacte : `bg-[#fdfaf6] rounded-2xl` + **ombre canonique des tuiles** (ci-dessus) +
+  `transition-shadow duration-300` (l'ombre se renforce **seule** au survol, **pas** de
+  `-translate-y` ni de changement de fond). Titre `font-heading text-2xl text-[#0a0a0a]`,
+  paragraphe `text-gray-600 leading-relaxed`. Ne pas réinventer d'ombre plus légère ni de
+  survol qui soulève la carte : on s'aligne sur ce motif.
 - **Tuile orange (mise en avant)** : dégradé diagonal `bg-[#FF6600]` (fallback) +
   `style={{ backgroundImage: "linear-gradient(40deg, #e85c00 0%, #FF6600 52%, #ff8a3d 100%)" }}`,
   texte blanc (titres blancs, paragraphe `text-white/85`). Survol `hover:-translate-y-1`.

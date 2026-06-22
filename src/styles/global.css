@@ -121,6 +121,23 @@ body {
   }
 }
 
+/* Pas de « capslock » sur tout le site.
+   La marque bannit le texte tout en majuscules : on neutralise l'utilitaire
+   Tailwind `uppercase` partout (eyebrows, badges, labels de stats, hints…),
+   les libellés conservent leur casse d'origine. Règle hors `@layer` +
+   `!important` → l'emporte sur la couche `utilities` de Tailwind. Pour une
+   capitale en début de mot, utiliser plutôt `capitalize`.
+
+   On en profite pour RESSERRER l'espacement des lettres de ces mêmes labels :
+   les `tracking-widest` / `tracking-[0.2em]` étaient calibrés pour des capitales
+   et paraissent trop lâches en casse normale. Tous les trackings larges du site
+   sont portés par des éléments `uppercase`, donc cette seule règle les couvre
+   (méga-menu compris). */
+.uppercase {
+  text-transform: none !important;
+  letter-spacing: 0.02em !important;
+}
+
 /* Icônes animées Carbon (@carbon/icons-motion).
    Leur encre est figée en noir (certains tracés ont fill/stroke explicites) :
    impossible de fiabiliser via `currentColor` sans remplir les contours creux.
@@ -291,6 +308,26 @@ body {
   .highlight-shine {
     animation: none;
   }
+}
+
+/* Scrollbar fine du panneau « fonctionnalités » de la visite (VirtualTourPilot,
+   liste dépliable). Discrète au repos (gris bordure), orange clair au survol. */
+.ev-tour-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #e5e7eb transparent;
+}
+.ev-tour-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.ev-tour-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ev-tour-scroll::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 9999px;
+}
+.ev-tour-scroll::-webkit-scrollbar-thumb:hover {
+  background: #ff8533;
 }
 
 /* Halos de fond « vivants » — dérive très lente des blobs blancs flous de

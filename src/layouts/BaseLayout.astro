@@ -4,6 +4,8 @@ import "@fontsource-variable/manrope";
 import "@fontsource-variable/inter";
 import "@carbon/icons-motion/dist/index.css";
 import "../styles/global.css";
+import Loader from "../components/Loader.astro";
+import Footer from "../components/Footer.astro";
 
 interface Props {
   title?: string;
@@ -27,6 +29,8 @@ const {
     <meta name="description" content={description} />
   </head>
   <body class="min-h-full flex flex-col bg-background text-foreground antialiased">
+    <Loader />
     <slot />
+    <Footer />
   </body>
 </html>

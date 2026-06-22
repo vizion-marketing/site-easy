@@ -1,0 +1,311 @@
+---
+// Loader.astro — overlay de préchargement plein écran (visite 360°).
+//
+// Affiché en SSR tout en haut du <body> (BaseLayout) → apparaît INSTANTANÉMENT,
+// avant toute hydratation des îlots React. Le markup + le <style> scopé sont
+// générés via le MCP Gemini Design ; la LOGIQUE ci-dessous (verrouillage du
+// scroll + fondu de sortie au chargement) est gérée à la main.
+---
+
+<div
+  id="site-loader"
+  class="site-loader"
+  role="status"
+  aria-live="polite"
+  aria-label="Chargement de easyvirtual.tours…"
+>
+  <!-- Décor « tuile orange » : halo blanc flou + cercles concentriques translucides -->
+  <div class="loader-decoration" aria-hidden="true">
+    <div class="decoration-halo"></div>
+    <div class="decoration-circle circle-1"></div>
+    <div class="decoration-circle circle-2"></div>
+    <div class="decoration-circle circle-3"></div>
+  </div>
+
+  <div class="loader-content">
+    <!-- Ancre visuelle 360° (anneau + point en orbite) -->
+    <div class="orbit-container">
+      <svg
+        width="88"
+        height="88"
+        viewBox="0 0 100 100"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        class="orbit-svg"
+        aria-hidden="true"
+      >
+        <!-- Anneau pointillé subtil (blanc translucide sur fond orange) -->
+        <circle cx="50" cy="50" r="48" stroke="rgba(255,255,255,0.35)" stroke-width="1.5" stroke-dasharray="4 4" />
+        <!-- Point en orbite (blanc) -->
+        <g class="orbiting-point">
+          <circle cx="50" cy="2" r="3.5" fill="#ffffff" />
+          <circle cx="50" cy="2" r="6" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1" />
+        </g>
+      </svg>
+
+      <!-- Logo de marque -->
+      <div class="logo-wrapper">
+        <img
+          src="/logo-easyvirtual-tours-3-300x95.webp"
+          alt="easyvirtual.tours"
+          width="300"
+          height="95"
+          class="brand-logo"
+        />
+      </div>
+    </div>
+
+    <!-- Indicateur de progression -->
+    <div class="progress-wrapper">
+      <div class="progress-rail">
+        <div class="progress-bar-indeterminate"></div>
+      </div>
+      <span class="loading-text">Préparation de votre visite</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* 1. Mise en page & logique de sortie */
+  .site-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(40deg, #e85c00 0%, #ff6600 52%, #ff8a3d 100%);
+    overflow: hidden;
+    transition:
+      opacity 600ms cubic-bezier(0.4, 0, 0.2, 1),
+      transform 600ms cubic-bezier(0.4, 0, 0.2, 1),
+      visibility 600ms;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Décor « tuile orange » canonique (halo blanc + cercles concentriques à droite) */
+  .loader-decoration {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .decoration-halo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    background: rgba(255, 255, 255, 0.08);
+    filter: blur(80px);
+    border-radius: 9999px;
+  }
+  .decoration-circle {
+    position: absolute;
+    top: 50%;
+    right: -10%;
+    transform: translateY(-50%);
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .circle-1 {
+    width: 210px;
+    height: 210px;
+  }
+  .circle-2 {
+    width: 380px;
+    height: 380px;
+  }
+  .circle-3 {
+    width: 550px;
+    height: 550px;
+  }
+
+  /* État cible ajouté par le script JS pour masquer l'overlay */
+  .site-loader.is-loaded {
+    opacity: 0;
+    transform: scale(1.02);
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  .loader-content {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5rem;
+    animation: loader-fade-in 800ms ease-out forwards;
+  }
+
+  /* 2. Anneau en rotation + logo */
+  .orbit-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    height: 120px;
+  }
+
+  .orbit-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    animation: loader-rotate-360 4s linear infinite;
+  }
+
+  .logo-wrapper {
+    position: relative;
+    z-index: 10;
+    padding: 1rem;
+    background: transparent; /* le logo (boîte orange + texte blanc) se fond dans le fond */
+  }
+
+  .brand-logo {
+    height: 2.5rem; /* h-10 */
+    width: auto;
+    object-fit: contain;
+  }
+
+  @media (min-width: 768px) {
+    .brand-logo {
+      height: 3rem; /* h-12 */
+    }
+  }
+
+  /* 3. Barre de progression indéterminée */
+  .progress-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .progress-rail {
+    position: relative;
+    width: 200px;
+    height: 3px;
+    background-color: rgba(255, 255, 255, 0.25);
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+
+  .progress-bar-indeterminate {
+    position: absolute;
+    height: 100%;
+    width: 40%;
+    background-color: #ffffff;
+    border-radius: 9999px;
+    animation: loader-progress-slide 1.5s infinite ease-in-out;
+  }
+
+  .loading-text {
+    font-family: var(--font-heading, "Jost", sans-serif);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  /* 4. Keyframes */
+  @keyframes loader-rotate-360 {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes loader-progress-slide {
+    0% {
+      left: -40%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+
+  @keyframes loader-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* 5. Accessibilité — mouvement réduit */
+  @media (prefers-reduced-motion: reduce) {
+    .orbit-svg,
+    .progress-bar-indeterminate,
+    .loader-content {
+      animation: none !important;
+    }
+
+    .progress-bar-indeterminate {
+      width: 60%;
+      left: 20%;
+    }
+
+    .site-loader {
+      transition: opacity 300ms ease;
+    }
+  }
+</style>
+
+<!-- Verrouille le défilement tant que le loader est actif (global, hors scope). -->
+<style is:global>
+  html.loader-active,
+  html.loader-active body {
+    overflow: hidden;
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var html = document.documentElement;
+    // Verrouille le scroll dès l'analyse du document.
+    html.classList.add("loader-active");
+
+    var MIN_VISIBLE = 600; // durée minimale d'affichage (ms) pour éviter un flash
+    var start = Date.now();
+    var done = false;
+
+    function hide() {
+      if (done) return;
+      done = true;
+      html.classList.remove("loader-active");
+      var loader = document.getElementById("site-loader");
+      if (!loader) return;
+      loader.classList.add("is-loaded");
+      // Retire l'overlay du DOM une fois le fondu terminé (~600ms de transition).
+      window.setTimeout(function () {
+        if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+      }, 700);
+    }
+
+    function onReady() {
+      var wait = Math.max(0, MIN_VISIBLE - (Date.now() - start));
+      window.setTimeout(hide, wait);
+    }
+
+    if (document.readyState === "complete") {
+      onReady();
+    } else {
+      window.addEventListener("load", onReady, { once: true });
+    }
+
+    // Filet de sécurité : ne jamais bloquer l'écran indéfiniment.
+    window.setTimeout(hide, 8000);
+  })();
+</script>

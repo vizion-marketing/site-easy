@@ -5,10 +5,13 @@ import Hero from "../components/Hero.tsx";
 import LatestTours from "../components/LatestTours.tsx";
 import AboutBento from "../components/AboutBento.tsx";
 import VirtualTourPilot from "../components/VirtualTourPilot.tsx";
+import Specificites from "../components/Specificites.tsx";
 import UseCases from "../components/UseCases.tsx";
 import HowItWorks from "../components/HowItWorks.tsx";
 import Franchises from "../components/Franchises.tsx";
 import ContactCTA from "../components/ContactCTA.tsx";
+import FAQ from "../components/FAQ.tsx";
+import ContactVideoDock from "../components/ContactVideoDock.tsx";
 import { sanityClient } from "sanity:client";
 import { urlFor } from "../sanity/lib/image";
 import {
@@ -16,6 +19,7 @@ import {
   SECTEURS_QUERY,
   CAS_USAGES_QUERY,
   FRANCHISEES_QUERY,
+  FAQ_QUERY,
 } from "../sanity/lib/queries";
 
 type TourDoc = {
@@ -160,6 +164,19 @@ const placeholderFranchisees = [
 ];
 
 const displayFranchisees = franchisees.length ? franchisees : placeholderFranchisees;
+
+// FAQ — questions/réponses depuis Sanity (ordre `order`). Tolérant : si Sanity n'est
+// pas prêt ou qu'aucune question n'est saisie, la FAQ retombe sur ses défauts internes.
+type FaqDoc = { question?: string; answer?: string };
+let faqDocs: FaqDoc[] = [];
+try {
+  faqDocs = await sanityClient.fetch<FaqDoc[]>(FAQ_QUERY);
+} catch (err) {
+  console.warn("[index] Échec du fetch Sanity de la FAQ — défauts utilisés.", err);
+}
+const faqItems = (faqDocs ?? [])
+  .filter((f) => f.question && f.answer)
+  .map((f) => ({ question: f.question as string, answer: f.answer as string }));
 ---
 
 <BaseLayout>
@@ -168,8 +185,11 @@ const displayFranchisees = franchisees.length ? franchisees : placeholderFranchi
   <AboutBento client:visible />
   <VirtualTourPilot client:visible />
   <UseCases client:visible />
+  <Specificites />
   <HowItWorks client:visible />
   <LatestTours client:visible tours={displayTours} />
   <Franchises client:visible franchisees={displayFranchisees} />
   <ContactCTA client:visible />
+  <FAQ client:visible items={faqItems} />
+  <ContactVideoDock client:idle />
 </BaseLayout>
