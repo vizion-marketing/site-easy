@@ -46,15 +46,18 @@ function buildQuery({ adresse, codePostal, ville }: GeoInput): string {
     .join(" ");
 }
 
-async function geocodeOne(input: GeoInput): Promise<GeoCoords> {
-  const q = buildQuery(input);
-  if (!q) return null;
-
+/** Une requête BAN. `municipalityOnly` restreint aux communes (type=municipality). */
+async function geocodeQuery(
+  q: string,
+  codePostal: string | null | undefined,
+  municipalityOnly: boolean,
+): Promise<GeoCoords> {
   const url = new URL("https://api-adresse.data.gouv.fr/search/");
   url.searchParams.set("q", q);
   url.searchParams.set("limit", "1");
-  if (input.codePostal?.trim()) {
-    url.searchParams.set("postcode", input.codePostal.trim());
+  if (municipalityOnly) url.searchParams.set("type", "municipality");
+  if (codePostal?.trim()) {
+    url.searchParams.set("postcode", codePostal.trim());
   }
 
   try {
@@ -80,6 +83,21 @@ async function geocodeOne(input: GeoInput): Promise<GeoCoords> {
   }
 }
 
+async function geocodeOne(input: GeoInput): Promise<GeoCoords> {
+  const q = buildQuery(input);
+  if (!q) return null;
+
+  // 1) On restreint d'abord aux communes pour écarter les homonymes lieux-dits :
+  //    « Montauban » renvoyait un hameau de Guadeloupe, « Bourges » un lieu-dit des
+  //    Pyrénées. type=municipality force la vraie commune.
+  // 2) Repli sans filtre si aucune commune ne correspond (départements/régions saisis
+  //    comme « Seine-et-Marne », « Côte Basque »…).
+  return (
+    (await geocodeQuery(q, input.codePostal, true)) ??
+    (await geocodeQuery(q, input.codePostal, false))
+  );
+}
+
 /**
  * Géocode une liste d'éléments (franchisés) au build et renvoie chacun enrichi
  * de `{ lat, lng }` (ou `null` si non géocodable). Met en cache par requête.
@@ -93,7 +111,9 @@ export async function geocodeAll<T extends GeoInput>(
   const out: Array<T & { lat: number | null; lng: number | null }> = [];
 
   for (const item of items) {
-    const key = buildQuery(item).toLowerCase();
+    // Clé versionnée (« v2: ») : invalide automatiquement les entrées géocodées par
+    // l'ancienne logique sans filtre commune (Montauban → Guadeloupe, etc.).
+    const key = "v2:" + buildQuery(item).toLowerCase();
     let coords: GeoCoords = null;
 
     if (key) {

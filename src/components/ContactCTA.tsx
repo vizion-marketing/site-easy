@@ -1,4 +1,7 @@
 import Eyebrow from "./Eyebrow";
+import { LogoSet } from "./LogoMarquee";
+
+type Stat = { value: string; label: string };
 
 type Props = {
   eyebrow?: string;
@@ -10,119 +13,112 @@ type Props = {
   primaryHref?: string;
   secondaryLabel?: string;
   secondaryHref?: string;
-  /* Portrait affiché à droite, sur le motif de cercles concentriques. */
-  imagePath?: string;
-  imageAlt?: string;
-  /* Petite preuve sociale flottante sur l'image (optionnelle). */
+  /* Chiffres-clés rappelés (preuve sociale). Le 1er reprend badgeValue/badgeLabel. */
   badgeValue?: string;
   badgeLabel?: string;
+  secondStatValue?: string;
+  secondStatLabel?: string;
+  thirdStatValue?: string;
+  thirdStatLabel?: string;
 };
 
-/* Bande d'appel à l'action finale — carte sombre immersive sur fond blanc dominant.
-   Reprend le motif « rings concentriques + portrait + CTA » de la référence, décliné
-   à la marque (orange #FF6600, titre fin font-heading + highlight font-cooper).
-   Section éditoriale statique : props optionnelles (défauts FR), branchables à Sanity. */
+/* Section d'appel à l'action finale — bandeau ORANGE pleine largeur, à part entière
+   (juste avant le footer). Gros titre centré « prendre rendez-vous » + rappel de la
+   preuve sociale (bandeau de logos partenaires repris du hero + chiffres-clés). Markup/
+   design issus du MCP Gemini Design ; props (défauts FR) branchables à Sanity. Îlot Astro. */
 export default function ContactCTA({
   eyebrow = "Prêt à vous lancer ?",
-  titlePart1 = "Passez à la ",
+  titlePart1 = "Prenons rendez-vous pour votre ",
   titleHighlight = "visite virtuelle",
-  titlePart2 = " dès aujourd'hui",
+  titlePart2 = "",
   description = "Décrivez-nous votre projet : nous vous rappelons sous 24h et planifions le tournage de votre visite 360°, livrée en 48h, partout en France.",
-  primaryLabel = "Demander une démo",
+  primaryLabel = "Prendre rendez-vous",
   primaryHref = "#demo",
   secondaryLabel = "Parler à un expert",
   secondaryHref = "#contact",
-  imagePath = "/didier.png",
-  imageAlt = "Un expert easyvirtual.tours, prêt à démarrer votre projet",
   badgeValue = "+500",
   badgeLabel = "Visites réalisées",
+  secondStatValue = "+100",
+  secondStatLabel = "Entreprises",
+  thirdStatValue = "48h",
+  thirdStatLabel = "Livraison",
 }: Props) {
-  return (
-    <section id="contact" className="bg-white py-24 md:py-32 lg:py-40">
-      <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
-        <div className="relative isolate overflow-hidden rounded-3xl bg-zinc-950 px-6 py-14 sm:px-10 md:px-14 lg:px-20 lg:py-20 shadow-[0_24px_64px_-24px_rgba(255,102,0,0.25)]">
+  const stats: Stat[] = [
+    { value: badgeValue, label: badgeLabel },
+    { value: secondStatValue, label: secondStatLabel },
+    { value: thirdStatValue, label: thirdStatLabel },
+  ].filter((s) => s.value && s.label);
 
-          {/* MOTIF DÉCORATIF — cercles concentriques (droite) + halo orange */}
-          <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-            <div className="absolute right-[-6rem] top-1/2 hidden -translate-y-1/2 lg:block">
-              {[760, 600, 460, 320].map((size) => (
-                <div
-                  key={size}
-                  className="absolute rounded-full border border-white/[0.06]"
-                  style={{ width: size, height: size, left: -size / 2, top: -size / 2 }}
-                />
-              ))}
-            </div>
-            <div className="absolute right-0 top-0 h-80 w-80 rounded-full bg-[#FF6600]/25 blur-[110px]" />
-            <div className="absolute bottom-[-4rem] left-[-2rem] h-72 w-72 rounded-full bg-[#FF6600]/10 blur-[120px]" />
+  return (
+    <section
+      id="contact"
+      className="relative isolate overflow-hidden py-24 md:py-32 lg:py-40"
+      style={{ backgroundImage: "linear-gradient(135deg, #e85c00 0%, #FF6600 50%, #ff8a3d 100%)" }}
+    >
+      {/* DÉCOR — cercles concentriques en filigrane + halo blanc flou */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/15" />
+        <div className="absolute left-1/2 top-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
+        <div className="absolute left-1/2 top-1/2 h-[240px] w-[240px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/5" />
+        <div className="absolute -top-24 left-1/2 h-96 w-96 -translate-x-1/2 bg-white/10 blur-3xl" />
+      </div>
+
+      <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
+        <div className="mx-auto max-w-4xl text-center">
+          <div className="flex justify-center">
+            <Eyebrow className="text-white">{eyebrow}</Eyebrow>
           </div>
 
-          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-16">
+          <h2 className="mt-8 font-heading text-4xl font-light leading-[1.02] tracking-[-0.03em] text-white md:text-6xl lg:text-7xl">
+            {titlePart1}
+            <span className="font-cooper text-white">{titleHighlight}</span>
+            {titlePart2}
+          </h2>
 
-            {/* BLOC GAUCHE — texte & CTA */}
-            <div className="lg:col-span-7">
-              <Eyebrow>{eyebrow}</Eyebrow>
+          {description && (
+            <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-white/85">
+              {description}
+            </p>
+          )}
 
-              <h2 className="mt-5 max-w-2xl font-heading text-3xl font-light leading-[1.02] tracking-[-0.03em] text-white md:text-4xl lg:text-5xl">
-                {titlePart1}
-                <span className="font-cooper text-[#FF6600]">{titleHighlight}</span>
-                {titlePart2}
-              </h2>
-
-              {description && (
-                <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/70">
-                  {description}
-                </p>
-              )}
-
-              <div className="mt-10 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
-                <a
-                  href={primaryHref}
-                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#FF6600] px-8 py-4 font-semibold text-white shadow-xl shadow-orange-900/20 transition-all duration-300 hover:bg-[#e85c00]"
-                >
-                  {primaryLabel}
-                  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transform-none">
-                    <path d="M5 10h10m-4-4l4 4-4 4" />
-                  </svg>
-                </a>
-                <a
-                  href={secondaryHref}
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-dashed border-white/40 bg-transparent px-8 py-4 font-semibold text-white transition-all duration-300 hover:border-white/70 hover:bg-white/5"
-                >
-                  {secondaryLabel}
-                </a>
+          {/* PREUVE SOCIALE — bandeau logos partenaires (repris du hero) + chiffres-clés */}
+          <div className="mt-14 border-y border-white/15 py-10">
+            {/* Marquee de logos — logos blancs sur orange, fondu latéral via .marquee-mask */}
+            <div className="marquee-mask relative w-full overflow-hidden text-white/85">
+              <div className="marquee flex w-max">
+                <LogoSet />
+                <LogoSet hidden />
               </div>
             </div>
 
-            {/* BLOC DROIT — portrait sur le motif de cercles */}
-            <div className="relative lg:col-span-5">
-              <div className="group relative mx-auto aspect-[4/5] w-full max-w-sm overflow-hidden rounded-3xl bg-zinc-900 ring-1 ring-white/10">
-                <img
-                  src={imagePath}
-                  alt={imageAlt}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-700 ease-in-out motion-safe:group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-
-                {/* Chip preuve sociale flottante */}
-                {badgeValue && (
-                  <div className="absolute bottom-5 left-5 inline-flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-md">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FF6600] text-white">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
-                        <path d="M19 4h-3.17L14.41 2H9.59L8.17 4H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z" />
-                        <circle cx="12" cy="13" r="4" />
-                      </svg>
-                    </span>
-                    <span className="flex flex-col leading-tight">
-                      <span className="font-heading text-xl font-light tracking-tight text-white">{badgeValue}</span>
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-white/70">{badgeLabel}</span>
-                    </span>
-                  </div>
-                )}
-              </div>
+            {/* Chiffres-clés, centrés sous le marquee */}
+            <div className="mt-10 flex items-center justify-center gap-10 md:gap-16">
+              {stats.map((s, i) => (
+                <div key={i} className={i === 2 ? "hidden text-center sm:block" : "text-center"}>
+                  <div className="font-heading text-3xl font-light text-white md:text-4xl">{s.value}</div>
+                  <div className="mt-1 text-[10px] font-bold uppercase tracking-widest text-white/70">{s.label}</div>
+                </div>
+              ))}
             </div>
+          </div>
 
+          {/* ACTIONS CENTRÉES */}
+          <div className="mt-16 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <a
+              href={primaryHref}
+              className="group inline-flex h-14 items-center justify-center gap-2 rounded-full bg-white px-10 text-base font-bold text-[#FF6600] transition-all duration-300 hover:bg-white/95 active:scale-[0.98]"
+            >
+              {primaryLabel}
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transform-none">
+                <path d="M5 10h10m-4-4l4 4-4 4" />
+              </svg>
+            </a>
+            <a
+              href={secondaryHref}
+              className="inline-flex h-14 items-center justify-center gap-2 rounded-full border border-white/40 px-10 text-base font-bold text-white transition-all duration-300 hover:bg-white/10 active:scale-[0.98]"
+            >
+              {secondaryLabel}
+            </a>
           </div>
         </div>
       </div>

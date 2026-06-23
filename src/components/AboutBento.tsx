@@ -1,4 +1,5 @@
 import Eyebrow from "./Eyebrow";
+import { FRANCHISE_AVATARS } from "../lib/franchises";
 
 type Props = {
   eyebrow?: string;
@@ -27,6 +28,9 @@ type Props = {
   easyGroupDescription?: string;
   /* Suffixes des marques sœurs « easy » affichées en grille de logos (wordmarks). */
   easyBrands?: string[];
+  /* Tuile « acteur engagé » (éco-responsable / RSE) — bas de la colonne droite. */
+  engagementTitle?: string;
+  engagementDescription?: string;
 };
 
 /* Pastille numérotée (01–04) — badge « outline » : contour fin + chiffre zéro-paddé.
@@ -84,7 +88,7 @@ export default function AboutBento({
   titlePart1 = "easyVirtual.tours, le ",
   titleHighlight = "leader français",
   titlePart2 = " de la visite virtuelle",
-  intro = "Derrière chaque visite virtuelle, trois forces réunies : l'appui d'un grand groupe, un réseau d'agences de proximité partout en France, et la technologie de capture 3D la plus avancée du marché.",
+  intro = "Derrière chaque visite virtuelle, quatre forces réunies : l'appui d'un grand groupe, un réseau d'agences de proximité partout en France, la technologie de capture 3D la plus avancée du marché, et un engagement éco-responsable assumé.",
   imagePath = "/easyfamily.png",
   testimonialQuote = "Nous avons rejoint le groupe *easy* en 2023 avec une conviction : rendre, nous aussi, une technologie de pointe accessible au plus grand nombre comme Stelios l'a fait avec l'aviation et easyJet avant nous.",
   testimonialAuthor = "Clément Carrère & Léo Bouyssou",
@@ -97,26 +101,21 @@ export default function AboutBento({
     "Matterport, c'est la pointe de la technologie de capture 3D : un jumeau numérique d'un réalisme et d'une précision inégalés, devenu la référence mondiale de la visite virtuelle.",
   networkTitle = "Nous avons +30 agences dans toute la France",
   networkDescription = "easyvirtual.tours est le premier réseau de franchise français entièrement dédié à la visite virtuelle 360°. Des franchisés locaux partout en France, un savoir-faire commun, une qualité homogène.",
-  // Photos placeholder — à remplacer par les vrais portraits de franchisés (/public).
-  franchiseeAvatars = [
-    "https://i.pravatar.cc/96?img=12",
-    "https://i.pravatar.cc/96?img=32",
-    "https://i.pravatar.cc/96?img=5",
-    "https://i.pravatar.cc/96?img=47",
-    "https://i.pravatar.cc/96?img=68",
-  ],
+  // Portraits réels des franchisés (public/franchises/, voir src/lib/franchises.ts).
+  franchiseeAvatars = FRANCHISE_AVATARS,
   easyGroupTitle = "Nous sommes une marque du groupe *easy*",
   easyGroupInfo = "easy (easyGroup) est l'écosystème de marques fondé par Sir Stelios Haji-Ioannou — easyJet, easyHotel, easyGym, easyCar… — réunies par une même promesse : rendre le premium simple et accessible à tous.",
   easyGroupDescription = "Non, nous ne sommes pas des imposteurs ! Nous faisons bien partie de la easy family, l'écosystème de marques fondé par Sir Stelios Haji-Ioannou en 1998.",
   easyBrands = ["Jet", "Gym", "Voyage", "Pet", "Hotel", "Car"],
+  engagementTitle = "Un acteur engagé pour la planète",
+  engagementDescription =
+    "Chaque visite virtuelle, ce sont des déplacements en moins. Le jumeau numérique permet de tout visiter à distance : moins de trajets, moins de CO₂, sans rien sacrifier à la qualité de la visite.",
 }: Props) {
-  // Piste du marquee : on triple la liste pour remplir la largeur du bloc, puis le
-  // rendu la duplique (translateX -50%) pour une boucle continue sans couture.
-  const marqueeAvatars = [
-    ...franchiseeAvatars,
-    ...franchiseeAvatars,
-    ...franchiseeAvatars,
-  ];
+  // Piste du marquee : on répète la liste pour remplir la largeur du bloc (au moins ~14
+  // vignettes), puis le rendu la duplique (translateX -50%) pour une boucle sans couture.
+  const MIN_TILES = 14;
+  const reps = Math.max(1, Math.ceil(MIN_TILES / Math.max(franchiseeAvatars.length, 1)));
+  const marqueeAvatars = Array.from({ length: reps }, () => franchiseeAvatars).flat();
 
   return (
     <section id="a-propos" className="overflow-hidden bg-white pt-10 md:pt-14 lg:pt-16 pb-24 md:pb-32 lg:pb-40">
@@ -137,50 +136,20 @@ export default function AboutBento({
           )}
         </div>
 
-        {/* GRILLE BENTO */}
-        <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-12">
+        {/* GRILLE BENTO — 6 tuiles CARRÉES en damier 3 colonnes × 2 rangées
+           (`lg:aspect-square` → colonnes égales donc carrés identiques). Le carré est
+           dimensionné pour le contenu texte ; la photo Matterport se recadre (object-cover).
+           Ordre : photo · ① · ② / ③ · ④ · photo. Bande témoignage pleine largeur juste après. */}
+        <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
 
-          {/* TUILE 1 — IMAGE DOMINANTE (easy family) */}
-          <div className={`group relative min-h-[420px] overflow-hidden rounded-3xl bg-zinc-100 transition-shadow duration-300 ${TILE_SHADOW} lg:col-start-1 lg:col-span-5 lg:row-start-1 lg:row-span-2`}>
-            <img
-              src={imagePath}
-              alt="La easy family — l'écosystème de marques du groupe easyJet"
-              className="h-full w-full object-cover transition-transform duration-700 ease-in-out motion-safe:group-hover:scale-105"
-            />
-            {/* Dégradé noir → transparent, du bas vers le haut */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-transparent" />
-
-            {/* Témoignage des cofondateurs */}
-            <figure className="absolute inset-x-0 bottom-0 p-8 text-white md:p-10">
-              {/* Guillemet décoratif */}
-              <svg viewBox="0 0 32 32" fill="currentColor" className="mb-3 h-8 w-8 text-[#FF6600]" aria-hidden="true">
-                <path d="M10 8C6.7 8 4 10.7 4 14s2.7 6 6 6c.34 0 .67-.03 1-.1-.5 2.3-2.4 4-4.7 4.1-.7.03-1.3.6-1.3 1.3 0 .73.6 1.32 1.34 1.3C12.27 26.5 16 22.6 16 18v-4c0-3.3-2.7-6-6-6Zm12 0c-3.3 0-6 2.7-6 6s2.7 6 6 6c.34 0 .67-.03 1-.1-.5 2.3-2.4 4-4.7 4.1-.7.03-1.3.6-1.3 1.3 0 .73.6 1.32 1.34 1.3C24.27 26.5 28 22.6 28 18v-4c0-3.3-2.7-6-6-6Z" />
-              </svg>
-
-              <blockquote className="font-heading text-2xl font-light leading-snug tracking-tight md:text-3xl">
-                {renderBrandTitle(testimonialQuote, "font-cooper text-[#FF6600]")}
-              </blockquote>
-
-              <figcaption className="mt-5 flex items-center gap-3">
-                {testimonialAvatars.length > 0 && (
-                  <div className="flex -space-x-3">
-                    {testimonialAvatars.map((src) => (
-                      <img
-                        key={src}
-                        src={src}
-                        alt=""
-                        loading="lazy"
-                        className="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-white/80"
-                      />
-                    ))}
-                  </div>
-                )}
-                <div>
-                  <p className="text-sm font-semibold tracking-tight">{testimonialAuthor}</p>
-                  <p className="text-xs text-white/70">{testimonialRole}</p>
-                </div>
-              </figcaption>
-            </figure>
+          {/* CASE PHOTO A (placeholder gris — coin haut-gauche, à remplacer par une image) */}
+          <div className="flex min-h-[240px] flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-gray-300 bg-zinc-100 p-8 text-gray-400 lg:min-h-0 min-[1440px]:aspect-square">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-9 w-9" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="9" cy="9" r="2" />
+              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+            </svg>
+            <span className="text-xs font-semibold uppercase tracking-wider">Photo à venir</span>
           </div>
 
           {/* TUILE 2 — GROUPE EASYJET */}
@@ -191,7 +160,7 @@ export default function AboutBento({
               backgroundImage:
                 "linear-gradient(40deg, #e85c00 0%, #FF6600 52%, #ff8a3d 100%)",
             }}
-            className={`relative z-20 rounded-2xl bg-[#FF6600] p-8 text-white transition-all duration-300 hover:-translate-y-1 motion-reduce:transition-none ${TILE_SHADOW} lg:col-start-6 lg:col-span-4 lg:row-start-1`}
+            className={`relative z-20 rounded-2xl bg-[#FF6600] p-8 text-white transition-all duration-300 hover:-translate-y-1 motion-reduce:transition-none ${TILE_SHADOW} min-[1440px]:aspect-square`}
           >
             {/* Décorations clippées au rayon de la tuile. Isolées dans cette couche
                `overflow-hidden` pour que la tuile elle-même NE clippe PAS l'infobulle
@@ -259,7 +228,7 @@ export default function AboutBento({
               <p className="mb-6 leading-relaxed text-white/85">{easyGroupDescription}</p>
 
               {/* Grille des marques sœurs de la easy family (wordmarks `font-cooper`) */}
-              <div className="mb-8">
+              <div className="mb-4">
                 <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
                   Les autres marques du groupe
                 </p>
@@ -292,17 +261,17 @@ export default function AboutBento({
           </div>
 
           {/* TUILE 3 — RÉSEAU FRANCHISE */}
-          <div className={`relative flex flex-col overflow-hidden rounded-2xl bg-white transition-shadow duration-300 ${TILE_SHADOW} lg:col-start-6 lg:col-span-4 lg:row-start-2`}>
+          <div className={`relative flex flex-col overflow-hidden rounded-2xl bg-white transition-shadow duration-300 ${TILE_SHADOW} min-[1440px]:aspect-square`}>
             {/* Contenu paddé */}
-            <div className="flex flex-1 flex-col p-8 md:p-10">
-              <StepBadge n={2} variant="orange" className="mb-6" />
+            <div className="flex flex-1 flex-col p-8">
+              <StepBadge n={2} variant="orange" className="mb-5" />
               <h3 className="font-heading text-2xl text-[#0a0a0a]">{networkTitle}</h3>
-              <p className="mt-4 leading-relaxed text-gray-600">{networkDescription}</p>
+              <p className="mt-3 leading-relaxed text-gray-600">{networkDescription}</p>
 
               {/* CTA secondaire — contour orange, se remplit au survol */}
               <a
                 href="#franchises"
-                className="group mt-8 inline-flex w-fit items-center gap-2 rounded-full border border-[#FF6600] px-6 py-3.5 text-sm font-semibold text-[#FF6600] transition-all duration-300 hover:bg-[#FF6600] hover:text-white active:scale-95 motion-reduce:transition-none"
+                className="group mt-6 inline-flex w-fit items-center gap-2 rounded-full border border-[#FF6600] px-6 py-3.5 text-sm font-semibold text-[#FF6600] transition-all duration-300 hover:bg-[#FF6600] hover:text-white active:scale-95 motion-reduce:transition-none"
               >
                 Rejoindre le réseau de franchise
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transition-none" aria-hidden="true">
@@ -313,7 +282,7 @@ export default function AboutBento({
             </div>
 
             {/* MARQUEE pleine largeur — têtes de franchisés (photos rondes) qui défilent */}
-            <div className="relative overflow-hidden border-t border-gray-200/70 py-5">
+            <div className="relative overflow-hidden border-t border-gray-200/70 py-4">
               {/* Fondus latéraux (entrée/sortie douce) */}
               <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-14 bg-gradient-to-r from-white to-transparent" aria-hidden="true" />
               <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-14 bg-gradient-to-l from-white to-transparent" aria-hidden="true" />
@@ -332,12 +301,13 @@ export default function AboutBento({
             </div>
           </div>
 
-          {/* TUILE 4 — IMAGE VERTICALE PLEINE HAUTEUR (colonne droite) */}
-          <div className={`group relative min-h-[420px] overflow-hidden rounded-3xl bg-zinc-100 transition-shadow duration-300 ${TILE_SHADOW} lg:col-start-10 lg:col-span-3 lg:row-start-1 lg:row-span-2 lg:min-h-0`}>
+          {/* TUILE 4 — IMAGE MATTERPORT (③) — la photo se recadre dans le carré (object-cover).
+             Image en `absolute inset-0` pour qu'elle ne dicte pas la hauteur de la tuile. */}
+          <div className={`group relative min-h-[420px] overflow-hidden rounded-3xl bg-zinc-100 transition-shadow duration-300 ${TILE_SHADOW} min-[1440px]:aspect-square min-[1440px]:min-h-0`}>
             <img
               src={tallImagePath}
               alt={`easyvirtual.tours — ${tallTitle}`}
-              className="h-full w-full object-cover transition-transform duration-700 ease-in-out motion-safe:group-hover:scale-105"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-in-out motion-safe:group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-transparent" />
             <StepBadge n={3} variant="light" className="absolute left-6 top-6 z-10" />
@@ -377,6 +347,88 @@ export default function AboutBento({
             </div>
           </div>
 
+          {/* TUILE 5 — ACTEUR ENGAGÉ (④, éco-responsable / RSE) */}
+          <div className={`flex flex-col rounded-2xl bg-[#fdfaf6] p-8 transition-shadow duration-300 md:p-10 ${TILE_SHADOW} min-[1440px]:aspect-square`}>
+            <StepBadge n={4} variant="orange" className="mb-6" />
+
+            {/* Chip d'icône éco-responsable (feuille) */}
+            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-[#fff4ec] text-[#FF6600]">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7" aria-hidden="true">
+                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 3.5 1 9.2a7 7 0 0 1-9 8.8Zm0 0v-2" />
+                <path d="M11 13c0-3 2-3 2-3" />
+              </svg>
+            </div>
+
+            <h3 className="font-heading text-2xl text-[#0a0a0a]">{engagementTitle}</h3>
+            <p className="mt-4 leading-relaxed text-gray-600">{engagementDescription}</p>
+
+            {/* Lien « Notre engagement » (texte, sur fond clair) */}
+            <a
+              href="#a-propos"
+              className="group mt-auto inline-flex w-fit items-center gap-1.5 pt-4 font-semibold text-[#FF6600] underline underline-offset-4 decoration-[#FF6600]/40 hover:decoration-[#FF6600]"
+            >
+              Notre engagement
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transition-none" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </a>
+          </div>
+
+          {/* CASE PHOTO B (placeholder gris — coin bas-droite, à remplacer par une image) */}
+          <div className="flex min-h-[240px] flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-gray-300 bg-zinc-100 p-8 text-gray-400 lg:min-h-0 min-[1440px]:aspect-square">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-9 w-9" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="9" cy="9" r="2" />
+              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+            </svg>
+            <span className="text-xs font-semibold uppercase tracking-wider">Photo à venir</span>
+          </div>
+
+        </div>
+
+        {/* BANDE TÉMOIGNAGE — pleine largeur, photo d'équipe en arrière-plan (paysage).
+           Voile dégradé depuis la gauche pour garder le texte lisible. */}
+        <div className={`group relative mt-4 min-h-[360px] overflow-hidden rounded-3xl bg-zinc-100 transition-shadow duration-300 md:mt-6 md:min-h-[440px] ${TILE_SHADOW}`}>
+          <img
+            src={imagePath}
+            alt="L'équipe easyVirtual.tours"
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-in-out motion-safe:group-hover:scale-105"
+          />
+          {/* Dégradé noir depuis la gauche (lisibilité du témoignage) */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent md:via-black/55" />
+
+          {/* Témoignage des cofondateurs — calé à gauche, centré verticalement */}
+          <figure className="absolute inset-0 flex flex-col justify-center p-8 text-white md:p-12 lg:p-16">
+            {/* Guillemet décoratif */}
+            <svg viewBox="0 0 32 32" fill="currentColor" className="mb-4 h-9 w-9 text-[#FF6600]" aria-hidden="true">
+              <path d="M10 8C6.7 8 4 10.7 4 14s2.7 6 6 6c.34 0 .67-.03 1-.1-.5 2.3-2.4 4-4.7 4.1-.7.03-1.3.6-1.3 1.3 0 .73.6 1.32 1.34 1.3C12.27 26.5 16 22.6 16 18v-4c0-3.3-2.7-6-6-6Zm12 0c-3.3 0-6 2.7-6 6s2.7 6 6 6c.34 0 .67-.03 1-.1-.5 2.3-2.4 4-4.7 4.1-.7.03-1.3.6-1.3 1.3 0 .73.6 1.32 1.34 1.3C24.27 26.5 28 22.6 28 18v-4c0-3.3-2.7-6-6-6Z" />
+            </svg>
+
+            <blockquote className="max-w-2xl font-heading text-2xl font-light leading-snug tracking-tight md:text-3xl lg:text-4xl">
+              {renderBrandTitle(testimonialQuote, "font-cooper text-[#FF6600]")}
+            </blockquote>
+
+            <figcaption className="mt-6 flex items-center gap-3">
+              {testimonialAvatars.length > 0 && (
+                <div className="flex -space-x-3">
+                  {testimonialAvatars.map((src) => (
+                    <img
+                      key={src}
+                      src={src}
+                      alt=""
+                      loading="lazy"
+                      className="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-white/80"
+                    />
+                  ))}
+                </div>
+              )}
+              <div>
+                <p className="text-sm font-semibold tracking-tight">{testimonialAuthor}</p>
+                <p className="text-xs text-white/70">{testimonialRole}</p>
+              </div>
+            </figcaption>
+          </figure>
         </div>
       </div>
     </section>

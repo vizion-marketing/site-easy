@@ -6,6 +6,8 @@ import {
   type LatLng,
 } from "../lib/geo";
 
+type Social = { platform: string; url: string };
+
 type Franchisee = {
   id: string;
   name: string; // "Prénom Nom"
@@ -15,6 +17,12 @@ type Franchisee = {
   ville?: string; // ville de rattachement (affichée dans le statut « Autour de … »)
   lat?: number | null; // coordonnées géocodées au build (null si non localisable)
   lng?: number | null;
+  // Vitrine du store locator (encart sur la photo) — tous optionnels (repli démo).
+  description?: string;
+  googleRating?: number; // note Google sur 5
+  googleReviews?: number; // nombre d'avis Google
+  gmbUrl?: string; // fiche Google My Business
+  socials?: Social[]; // réseaux sociaux
 };
 
 type Props = {
@@ -25,6 +33,8 @@ type Props = {
   intro?: string;
   ctaLabel?: string;
   ctaHref?: string;
+  /** Petite phrase d'invitation affichée au-dessus du CTA « Devenir franchisé ». */
+  joinHint?: string;
   /** Image affichée à droite par défaut, tant qu'aucun franchisé n'est mis en avant. */
   defaultImageUrl?: string;
   /** Libellés optionnels de la carte par défaut (surimpression affichée seulement si fournis). */
@@ -53,6 +63,167 @@ function renderHeading(text: string) {
   );
 }
 
+/* ---------------------------------------------------------------------------- *
+ * Encart blanc « fiche franchisé » superposé à la photo (store locator).
+ * Présente : nom, zone, note Google, description, lien landing page, réseaux
+ * sociaux et fiche Google My Business. Champs optionnels → repli sur des données
+ * de DÉMO tant qu'ils ne sont pas saisis dans Sanity (Studio /admin).
+ * ---------------------------------------------------------------------------- */
+
+// Données de démo (à remplacer par les vraies valeurs Sanity : noteGoogle, avisGoogle,
+// description, reseaux). Uniformes volontairement → clairement des placeholders.
+const DEMO_DESCRIPTION =
+  "Votre expert local easyvirtual.tours : je capture vos espaces en 360° et vous accompagne de la prise de vue à la mise en ligne.";
+const DEMO_RATING = 4.9;
+const DEMO_REVIEWS = 87;
+const DEMO_SOCIALS: Social[] = [
+  { platform: "instagram", url: "#" },
+  { platform: "linkedin", url: "#" },
+  { platform: "facebook", url: "#" },
+];
+
+/* Lien Google Maps de repli (recherche) quand aucune fiche GMB n'est renseignée. */
+const gmapsSearch = (query: string) =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+
+/* Icône d'un réseau social (SVG inline, aucune lib). Repli : icône « lien ». */
+function SocialIcon({ platform }: { platform: string }) {
+  switch (platform.toLowerCase()) {
+    case "instagram":
+      return (
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+          <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+        </svg>
+      );
+    case "linkedin":
+      return (
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+          <rect width="4" height="12" x="2" y="9" />
+          <circle cx="4" cy="4" r="2" />
+        </svg>
+      );
+    case "facebook":
+      return (
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+        </svg>
+      );
+    default:
+      return (
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+        </svg>
+      );
+  }
+}
+
+/* Encart blanc présentant le franchisé actif, posé en bas de la photo. */
+function FranchiseeInfoCard({ franchisee }: { franchisee: Franchisee }) {
+  const rating = franchisee.googleRating ?? DEMO_RATING;
+  const reviews = franchisee.googleReviews ?? DEMO_REVIEWS;
+  const description = franchisee.description ?? DEMO_DESCRIPTION;
+  const socials =
+    franchisee.socials && franchisee.socials.length ? franchisee.socials : DEMO_SOCIALS;
+  const gmbUrl =
+    franchisee.gmbUrl ?? gmapsSearch(`${franchisee.name} easyvirtual.tours ${franchisee.zone}`);
+  const filledStars = Math.round(rating);
+
+  return (
+    <>
+      {/* Voile dégradé pour ancrer l'encart sur les photos claires */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/40 to-transparent" aria-hidden="true" />
+
+      <div className="absolute inset-x-4 bottom-4 z-10">
+        <div className="rounded-2xl bg-white p-5 shadow-[0_2px_8px_-3px_rgba(10,10,10,0.10),0_22px_48px_-18px_rgba(10,10,10,0.14)] transition-shadow duration-300 hover:shadow-[0_4px_12px_-3px_rgba(10,10,10,0.14),0_32px_64px_-20px_rgba(10,10,10,0.20)]">
+
+          {/* Zone + nom */}
+          <div className="mb-3">
+            {franchisee.zone && (
+              <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-[#FF6600]">
+                {franchisee.zone}
+              </span>
+            )}
+            <h3 className="font-heading text-xl font-bold leading-tight text-[#0a0a0a] md:text-2xl">
+              {franchisee.name}
+            </h3>
+          </div>
+
+          {/* Note Google */}
+          <div className="mb-3 flex items-center gap-2">
+            <div className="flex items-center gap-0.5" aria-hidden="true">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <svg key={i} className={`h-4 w-4 ${i < filledStars ? "text-[#FF6600]" : "text-gray-300"}`} viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+              ))}
+            </div>
+            <span className="text-sm font-bold text-[#0a0a0a]">{rating.toFixed(1).replace(".", ",")}</span>
+            <span className="text-xs text-gray-500">{reviews > 0 ? `· ${reviews} avis Google` : "· Avis Google"}</span>
+          </div>
+
+          {/* Description */}
+          {description && (
+            <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-gray-600">{description}</p>
+          )}
+
+          <hr className="mb-4 border-gray-100" />
+
+          {/* Actions */}
+          <div className="space-y-3">
+            {/* Landing page */}
+            <a
+              href={franchisee.pageLink ?? "#"}
+              className="group/cta inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#FF6600] px-6 py-3 font-semibold text-white transition-colors duration-300 hover:bg-[#e85c00] active:scale-[0.98] motion-reduce:transition-none"
+            >
+              Voir sa page
+              <svg className="h-4 w-4 transition-transform duration-300 group-hover/cta:translate-x-1 motion-reduce:transform-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 12h14m-7-7 7 7-7 7" />
+              </svg>
+            </a>
+
+            {/* Fiche Google + réseaux sociaux */}
+            <div className="flex items-center justify-between gap-4">
+              <a
+                href={gmbUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#FF6600] underline decoration-[#FF6600]/40 underline-offset-4 transition-all hover:decoration-[#FF6600]"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                Fiche Google
+              </a>
+
+              {socials.length > 0 && (
+                <div className="flex items-center gap-2">
+                  {socials.map((s) => (
+                    <a
+                      key={s.platform}
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Suivre sur ${s.platform}`}
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-[#FF6600]/20 bg-white text-[#FF6600] transition-all duration-300 hover:scale-110 hover:bg-[#FF6600] hover:text-white active:scale-95 motion-reduce:transition-none"
+                    >
+                      <SocialIcon platform={s.platform} />
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 /* Section « réseau de franchisés » — drive-to-store : on géolocalise le visiteur
    (IP au chargement, puis GPS précis sur demande) et on affiche le TOP 3 des franchisés
    les plus proches (le n°1 mis en avant). Cliquer une carte change le portrait à droite.
@@ -64,6 +235,7 @@ export default function Franchises({
   intro = "Nos franchisés vous accompagnent partout en France pour capturer vos espaces sous leur meilleur angle.",
   ctaLabel = "Devenir franchisé",
   ctaHref = "#contact",
+  joinHint = "Vous voulez vous aussi rejoindre l'aventure ? Des zones sont encore disponibles.",
   defaultImageUrl = "/didier.png",
   defaultName,
   defaultRole,
@@ -139,12 +311,6 @@ export default function Franchises({
     });
   }, [decorated, userPos]);
 
-  // Le plus proche (1er localisé du tri) — alimente le portrait par défaut à droite.
-  const nearestFranchisee = useMemo(() => {
-    if (!userPos) return null;
-    return sortedFranchisees.find((f) => f.distanceKm != null) ?? null;
-  }, [sortedFranchisees, userPos]);
-
   // Recherche manuelle (nom OU zone OU ville), insensible aux accents et à la casse.
   // Les résultats restent triés par proximité quand le visiteur est géolocalisé.
   const isSearching = searchTerm.trim().length > 0;
@@ -159,17 +325,17 @@ export default function Franchises({
     );
   }, [sortedFranchisees, searchTerm]);
 
-  // Portrait affiché = franchisé sélectionné par clic, sinon 1er résultat de recherche,
-  // sinon le plus proche une fois géolocalisé, sinon la photo par défaut.
+  // Portrait affiché à droite = franchisé sélectionné par clic, sinon 1er résultat de
+  // recherche. PAS de sélection automatique par géoloc : la photo par défaut (didier.png)
+  // reste affichée « sans filtre » tant que le visiteur n'a pas choisi/recherché un franchisé.
   const activeFranchisee = useMemo(() => {
     if (selectedId) {
       const found = franchisees.find((f) => f.id === selectedId);
       if (found) return found;
     }
     if (isSearching) return searchResults[0] ?? null;
-    if (nearestFranchisee) return nearestFranchisee;
     return null;
-  }, [selectedId, franchisees, isSearching, searchResults, nearestFranchisee]);
+  }, [selectedId, franchisees, isSearching, searchResults]);
 
   // Liste affichée : résultats de recherche si l'on cherche, sinon le TOP 3 des plus proches.
   const cards = useMemo(() => {
@@ -189,6 +355,10 @@ export default function Franchises({
   }, [isSearching, searchResults, sortedFranchisees, activeFranchisee]);
 
   const onSelect = (id: string) => setSelectedId(id);
+
+  // Portrait de droite : le franchisé actif (sélection/recherche) si présent, sinon `null`
+  // → la photo par défaut (didier.png) s'affiche seule, « sans filtre » ni encart.
+  const portrait = activeFranchisee;
 
   return (
     <section id="franchises" className="relative overflow-hidden bg-white py-24 text-[#0a0a0a] md:py-32 lg:py-40">
@@ -421,33 +591,23 @@ export default function Franchises({
                 </div>
               )}
 
-              {/* CTA */}
-              <a
-                href={ctaHref}
-                className="group mt-12 inline-flex items-center gap-3 rounded-full bg-[#FF6600] px-8 py-4 font-semibold text-white shadow-xl shadow-orange-900/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#e85c00] active:scale-95 motion-reduce:transition-none"
-              >
-                {ctaLabel}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1.5 motion-reduce:transition-none" aria-hidden="true">
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </a>
             </div>
           </div>
 
-          {/* COLONNE DROITE — portrait du franchisé sélectionné (change en fondu) */}
-          <div className="relative lg:col-span-6">
+          {/* COLONNE DROITE — portrait du franchisé sélectionné (change en fondu) + CTA dessous */}
+          <div className="lg:col-span-6">
+            <div className="relative">
             {/* Décorations */}
             <div className="absolute -inset-4 -z-10 rounded-3xl border-2 border-dashed border-[#FF6600]/15" aria-hidden="true" />
             <div className="absolute left-1/2 top-1/2 -z-10 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FF6600]/5 blur-3xl" aria-hidden="true" />
 
             <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-gray-100 bg-[#fff4ec] shadow-[0_22px_50px_-16px_rgba(255,102,0,0.20)]">
-              {activeFranchisee ? (
-                <div key={activeFranchisee.id} className="group h-full w-full animate-fade-in">
-                  {activeFranchisee.imageUrl || defaultImageUrl ? (
+              {portrait ? (
+                <div key={portrait.id} className="group h-full w-full animate-fade-in">
+                  {portrait.imageUrl || defaultImageUrl ? (
                     <img
-                      src={activeFranchisee.imageUrl ?? defaultImageUrl}
-                      alt={`Portrait de ${activeFranchisee.name}`}
+                      src={portrait.imageUrl ?? defaultImageUrl}
+                      alt={`Portrait de ${portrait.name}`}
                       className="h-full w-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                     />
                   ) : (
@@ -462,54 +622,17 @@ export default function Franchises({
                     </div>
                   )}
 
-                  {/* Surimpression identité */}
-                  <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 bg-gradient-to-t from-black/85 via-black/20 to-transparent p-8 md:p-10">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs font-bold uppercase tracking-widest text-white/70">
-                        {activeFranchisee.zone}
-                      </span>
-                      <span className="font-heading text-3xl leading-none tracking-tight text-white md:text-4xl">
-                        {activeFranchisee.name}
-                      </span>
-                    </div>
-
-                    {activeFranchisee.pageLink && (
-                      <a
-                        href={activeFranchisee.pageLink}
-                        aria-label={`Voir la page de ${activeFranchisee.name}`}
-                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/40 bg-white/10 text-white shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-110 hover:bg-white/25 active:scale-95 motion-reduce:transition-none"
-                      >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
-                          <line x1="5" y1="12" x2="19" y2="12" />
-                          <polyline points="12 5 19 12 12 19" />
-                        </svg>
-                      </a>
-                    )}
-                  </div>
+                  {/* Encart blanc « fiche franchisé » par-dessus la photo */}
+                  <FranchiseeInfoCard franchisee={portrait} />
                 </div>
               ) : defaultImageUrl ? (
-                /* État initial (ni clic ni géoloc) → photo par défaut (Didier). */
+                /* Aucun franchisé géolocalisé/sélectionné → photo par défaut. */
                 <div key="__default__" className="group h-full w-full animate-fade-in">
                   <img
                     src={defaultImageUrl}
                     alt={defaultName ? `Portrait de ${defaultName}` : "Notre réseau"}
                     className="h-full w-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                   />
-
-                  {(defaultName || defaultRole) && (
-                    <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1 bg-gradient-to-t from-black/85 via-black/20 to-transparent p-8 md:p-10">
-                      {defaultRole && (
-                        <span className="text-xs font-bold uppercase tracking-widest text-white/70">
-                          {defaultRole}
-                        </span>
-                      )}
-                      {defaultName && (
-                        <span className="font-heading text-3xl leading-none tracking-tight text-white md:text-4xl">
-                          {defaultName}
-                        </span>
-                      )}
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="flex h-full w-full flex-col items-center justify-center gap-4 text-[#FF6600]/20">
@@ -525,6 +648,24 @@ export default function Franchises({
                 </div>
               )}
             </div>
+            </div>
+
+            {/* Invitation à rejoindre le réseau + CTA — sous la photo des franchisés */}
+            {joinHint && (
+              <p className="mt-8 max-w-md text-sm leading-relaxed text-gray-600">
+                {joinHint}
+              </p>
+            )}
+            <a
+              href={ctaHref}
+              className="group mt-4 inline-flex items-center gap-3 rounded-full bg-[#FF6600] px-8 py-4 font-semibold text-white shadow-xl shadow-orange-900/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#e85c00] active:scale-95 motion-reduce:transition-none"
+            >
+              {ctaLabel}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1.5 motion-reduce:transition-none" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </a>
           </div>
 
         </div>

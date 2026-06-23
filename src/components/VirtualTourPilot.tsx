@@ -211,7 +211,7 @@ export default function VirtualTourPilot({
   // Quand l'écran orange entre dans le viewport, un mot géant en police Cooper
   // apparaît au zoom (pending → intro), tient un instant, puis se dissout pour
   // révéler le contenu (titre, ours, pills, CTA) → reveal. Joué une seule fois.
-  const introRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const [phase, setPhase] = useState<"pending" | "intro" | "reveal">("pending");
 
   useEffect(() => {
@@ -221,8 +221,8 @@ export default function VirtualTourPilot({
       return;
     }
 
-    const el = introRef.current;
-    if (!el) return;
+    const section = sectionRef.current;
+    if (!section) return;
 
     let started = false;
     let revealTimer: ReturnType<typeof setTimeout> | undefined;
@@ -252,14 +252,22 @@ export default function VirtualTourPilot({
     const start = () => {
       if (started) return;
       started = true;
-      // Cale l'écran orange pile en haut du viewport, puis verrouille le scroll.
-      window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY);
+      // 1) On verrouille le scroll, puis on cale PROPREMENT l'écran orange plein
+      //    cadre en visant le HAUT DE LA SECTION (jamais l'écran sticky, dont le
+      //    rect se « colle » à 0 → scrollTo no-op en scroll rapide, ce qui laissait
+      //    la visite déjà remontée). La visite est ainsi repoussée hors champ
+      //    pendant toute l'intro.
       lockScroll();
-      // 1) zoom-in du mot (la transition pending → intro joue à la frame suivante)
+      // Si on a DÉPASSÉ le haut de la section (scroll rapide → la visite pointe
+      // déjà en bas de l'écran), on recale INSTANTANÉMENT pour qu'elle n'apparaisse
+      // jamais ; sinon (approche normale) on glisse en douceur jusqu'au plein cadre.
+      const targetY = section.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top: targetY, behavior: window.scrollY - targetY > 8 ? "auto" : "smooth" });
+      // 2) zoom-in du mot (la transition pending → intro joue à la frame suivante)
       requestAnimationFrame(() =>
         requestAnimationFrame(() => setPhase("intro")),
       );
-      // 2) après le zoom (~0,9 s) + maintien (~0,8 s) → dissolution + révélation,
+      // 3) après le zoom (~0,9 s) + maintien (~0,8 s) → dissolution + révélation,
       //    puis on relâche le scroll : la visite peut enfin remonter par-dessus.
       revealTimer = setTimeout(() => {
         setPhase("reveal");
@@ -277,13 +285,12 @@ export default function VirtualTourPilot({
           }
         }
       },
-      // Se déclenche quand le HAUT de l'écran orange atteint le haut du viewport
-      // (l'orange remplit alors l'écran) → le mot « Attention » est centré à l'écran
-      // sur toutes les tailles. La marge basse -99% ne garde active qu'une fine bande
-      // en haut du viewport.
-      { rootMargin: "0px 0px -99% 0px", threshold: 0 },
+      // Se déclenche dès que la section occupe ~90 % du viewport (bande active = le
+      // haut 10 %). On verrouille AVANT que la visite du dessous puisse pointer en
+      // bas de l'écran → aucun aperçu de la carte tant que l'intro n'est pas finie.
+      { rootMargin: "0px 0px -90% 0px", threshold: 0 },
     );
-    observer.observe(el);
+    observer.observe(section);
 
     return () => {
       observer.disconnect();
@@ -295,11 +302,10 @@ export default function VirtualTourPilot({
   const revealed = phase === "reveal";
 
   return (
-    <section id="visite-virtuelle" className="relative snap-start overflow-clip">
+    <section ref={sectionRef} id="visite-virtuelle" className="relative snap-start overflow-clip">
 
       {/* ═══════ COUCHE 1 — ÉCRAN-TITRE ORANGE (sticky, plein écran) ═══════ */}
       <div
-        ref={introRef}
         className="relative flex min-h-screen items-center overflow-x-clip bg-[#FF6600] lg:sticky lg:top-0 lg:h-screen"
         style={BRAND_DIAGONAL}
       >
@@ -471,7 +477,8 @@ export default function VirtualTourPilot({
       {/* ═══════ COUCHE 2 — LA VISITE XXL (glisse par-dessus l'orange) ═══════ */}
       <div
         id="la-visite"
-        className="relative z-10 -mt-10 scroll-mt-24 rounded-t-[2rem] bg-white pb-24 pt-16 shadow-[0_-24px_70px_-24px_rgba(10,10,10,0.28)] md:pb-32 md:pt-20 lg:rounded-t-[2.5rem] lg:pb-40 lg:pt-24"
+        style={{ transform: revealed ? undefined : "translateY(2.5rem)" }}
+        className="relative z-10 -mt-10 scroll-mt-24 rounded-t-[2rem] bg-white pb-24 pt-16 shadow-[0_-24px_70px_-24px_rgba(10,10,10,0.28)] transition-transform duration-700 ease-in-out motion-reduce:transition-none md:pb-32 md:pt-20 lg:rounded-t-[2.5rem] lg:pb-40 lg:pt-24"
       >
         <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
 

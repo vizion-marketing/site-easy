@@ -184,65 +184,88 @@ function FeatureLink({ item }: { item: MenuItem }) {
   );
 }
 
-/* Carte de visite virtuelle (méga-menu "Dernières visites") : vignette 16/10 avec
-   overlay + bouton play orange, badge catégorie en surimpression, titre → orange au survol.
-   Réplique le traitement visuel des cartes promo des méga-menus "Cas d'usages"/"Ressources". */
+/* Carte de visite virtuelle (méga-menu "Dernières visites") : reprend le motif des cartes
+   « coup de cœur » de la section Secteurs (SecteursBenefices) — tuile image verticale,
+   voile dégradé orange en bas, badge d'angle catégorie, contenu blanc en surimpression,
+   bouton play centré. */
 function TourCard({ tour }: { tour: TourItem }) {
   const meta = [tour.client, tour.location].filter(Boolean).join(" · ");
   return (
-    <a href={tour.href} className="group block">
-      <div className="relative h-40 w-full overflow-hidden rounded-xl bg-gray-100">
-        {tour.imageUrl && (
-          <img
-            src={tour.imageUrl}
-            alt=""
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-          />
-        )}
-        <div className="absolute inset-0 bg-black/20" />
-        {tour.category && (
-          <div className="absolute top-3 left-3 bg-[#FF6600] text-white text-[10px] font-bold px-2 py-1 uppercase tracking-wider rounded-sm">
-            {tour.category}
-          </div>
-        )}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div
-            className="relative flex h-12 w-12 items-center justify-center rounded-full text-white shadow-[0_2px_8px_-3px_rgba(10,10,10,0.10),0_22px_48px_-18px_rgba(10,10,10,0.14)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_30px_-4px_rgba(255,102,0,0.55)] motion-reduce:transition-none"
-            style={BRAND_DIAGONAL}
-          >
-            <svg className="ml-0.5 h-6 w-6 fill-current" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-            <div className="pointer-events-none absolute inset-0 rounded-full bg-white/0 transition-colors duration-300 group-hover:bg-white/10" />
-          </div>
+    <a
+      href={tour.href}
+      className="group relative aspect-[4/5] w-full overflow-hidden rounded-3xl bg-zinc-100 transition-shadow duration-300 shadow-[0_2px_8px_-3px_rgba(10,10,10,0.10),0_22px_48px_-18px_rgba(10,10,10,0.14)] hover:shadow-[0_4px_12px_-3px_rgba(10,10,10,0.14),0_32px_64px_-20px_rgba(10,10,10,0.20)]"
+    >
+      {tour.imageUrl && (
+        <img
+          src={tour.imageUrl}
+          alt={tour.title}
+          className="h-full w-full object-cover transition-transform duration-700 ease-in-out motion-safe:group-hover:scale-105"
+          loading="lazy"
+        />
+      )}
+
+      {/* Voile dégradé orange easyJet limité au bas de la carte */}
+      <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#FF6600] via-[#FF6600]/60 to-transparent" aria-hidden="true" />
+
+      {/* Badge d'angle catégorie (haut-gauche) */}
+      {tour.category && (
+        <div className="absolute left-0 top-0 z-10 inline-flex items-center rounded-tl-3xl rounded-br-[1.75rem] bg-[#FF6600] py-2.5 pl-4 pr-5 text-white shadow-lg shadow-orange-900/20">
+          <span className="text-[10px] font-bold uppercase tracking-widest leading-none">{tour.category}</span>
+        </div>
+      )}
+
+      {/* Bouton play centré */}
+      <div className="absolute inset-0 flex items-center justify-center pb-20">
+        <div
+          className="relative flex h-14 w-14 items-center justify-center rounded-full text-white shadow-2xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_30px_-4px_rgba(255,102,0,0.55)] motion-reduce:transition-none"
+          style={BRAND_DIAGONAL}
+        >
+          <svg className="ml-1 h-7 w-7 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          <div className="pointer-events-none absolute inset-0 rounded-full bg-white/0 transition-colors duration-300 group-hover:bg-white/10" />
         </div>
       </div>
-      <div className="mt-4 flex flex-col gap-1.5">
-        {tour.useCase && (
-          <div>
-            <span className="inline-flex items-center rounded-md bg-[#fff4ec] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.05em] text-[#FF6600]">
-              {tour.useCase}
-            </span>
+
+      {/* Contenu blanc en surimpression (bas) */}
+      <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
+        <div className="flex flex-col gap-2">
+          {tour.useCase && (
+            <div>
+              <span className="inline-flex items-center rounded-md bg-white/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-md">
+                {tour.useCase}
+              </span>
+            </div>
+          )}
+
+          <h4 className="font-heading text-xl font-bold leading-tight text-white">
+            {tour.title}
+          </h4>
+
+          {tour.description && (
+            <p className="line-clamp-2 text-xs leading-relaxed text-white/80">
+              {tour.description}
+            </p>
+          )}
+
+          {meta && (
+            <p className="flex items-center gap-1.5 text-[11px] font-medium text-white/70">
+              {tour.location && (
+                <svg className="h-3 w-3 shrink-0 opacity-70" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
+                </svg>
+              )}
+              <span className="truncate">{meta}</span>
+            </p>
+          )}
+
+          <div className="mt-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-white">
+            <span className="underline decoration-white/40 underline-offset-4 transition-colors group-hover:decoration-white">Lancer la visite</span>
+            <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transform-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
           </div>
-        )}
-        <h4 className="font-heading font-semibold text-base text-[#0a0a0a] leading-tight group-hover:text-[#FF6600] transition-colors">
-          {tour.title}
-        </h4>
-        {tour.description && (
-          <p className="line-clamp-2 text-[13px] leading-relaxed text-gray-500">
-            {tour.description}
-          </p>
-        )}
-        {meta && (
-          <p className="flex items-center gap-1 text-[13px] text-gray-400">
-            {tour.location && (
-              <svg className="h-3.5 w-3.5 shrink-0 text-gray-400/70" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
-              </svg>
-            )}
-            <span className="truncate">{meta}</span>
-          </p>
-        )}
+        </div>
       </div>
     </a>
   );
@@ -329,26 +352,27 @@ export default function Navbar({
   const latestTours: TourItem[] = tours.slice(1, 5);
 
   // Méga-menu "Secteurs" — zone gauche : 3 secteurs phares mis en avant en cartes promo
-  // (même traitement visuel que la carte "Visite pilote"). image = PLACEHOLDER → remplacer
-  // par de vraies vignettes 360°. À brancher plus tard sur Sanity si besoin.
+  // (même traitement visuel que la carte "Visite pilote"). Synchronisé avec les secteurs
+  // « coup de cœur » de la section SecteursBenefices (featured) : mêmes intitulés et mêmes
+  // photos locales (/public). À brancher plus tard sur Sanity si besoin.
   const featuredSecteurs = [
     {
       title: "Immobilier",
-      desc: "Valorisez vos biens avec des visites virtuelles haute fidélité.",
-      imageUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=800",
+      desc: "Vendez et louez sans déplacement inutile : la visite 360° qualifie vos acheteurs à distance, 24h/24.",
+      imageUrl: "/appartement.png",
       href: "#secteur-immobilier",
     },
     {
-      title: "Tourisme",
-      desc: "Faites rêver vos visiteurs : sites, campings et parcs en immersion 360°.",
-      imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=800",
-      href: "#secteur-tourisme",
+      title: "Rénovation",
+      desc: "Avant / après et relevés précis : capturez l'état des lieux et générez des plans cotés.",
+      imageUrl: "/chantier.png",
+      href: "#secteur-renovation",
     },
     {
-      title: "Éducation",
-      desc: "Ouvrez les portes de votre établissement aux futurs étudiants.",
-      imageUrl: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=800",
-      href: "#secteur-education",
+      title: "Industrie",
+      desc: "Formez vos équipes en immersion sur un site reproduit à l'identique, sans immobiliser la production.",
+      imageUrl: "/usine.png",
+      href: "#secteur-industrie",
     },
   ];
 

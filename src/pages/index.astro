@@ -17,6 +17,7 @@ import ContactVideoDock from "../components/ContactVideoDock.tsx";
 import { sanityClient } from "sanity:client";
 import { urlFor } from "../sanity/lib/image";
 import { geocodeAll } from "../sanity/lib/geocode";
+import { franchiseLocatorSeed } from "../lib/franchise-locator";
 import {
   ALL_TOURS_QUERY,
   SECTEURS_QUERY,
@@ -186,6 +187,11 @@ type FranchiseeDoc = {
   ville?: string;
   codePostal?: string;
   adresse?: string;
+  description?: string;
+  noteGoogle?: number;
+  avisGoogle?: number;
+  ficheGoogle?: string;
+  reseaux?: Array<{ plateforme?: string; url?: string }>;
 };
 
 let franchiseeDocs: FranchiseeDoc[] = [];
@@ -206,26 +212,40 @@ const mappedFranchisees = (franchiseeDocs ?? [])
       ? urlFor(f.photo).width(800).height(1000).fit("crop").url()
       : null,
     pageLink: f.pageLink,
+    // Vitrine du store locator (encart sur la photo) — affichage conditionnel côté client.
+    description: f.description,
+    googleRating: f.noteGoogle,
+    googleReviews: f.avisGoogle,
+    gmbUrl: f.ficheGoogle,
+    socials: (f.reseaux ?? [])
+      .filter((r) => r.plateforme && r.url)
+      .map((r) => ({ platform: r.plateforme as string, url: r.url as string })),
     // champs d'adresse — servent au géocodage au build puis sont retirés du payload client
     adresse: f.adresse,
     codePostal: f.codePostal,
   }));
 
+// Source : documents Sanity s'il y en a, sinon le réseau réel (src/lib/franchises.ts).
+const franchiseeSeed: Array<{
+  id: string;
+  name: string;
+  zone: string;
+  ville: string;
+  imageUrl: string | null;
+  pageLink?: string;
+  description?: string;
+  googleRating?: number;
+  googleReviews?: number;
+  gmbUrl?: string;
+  socials?: Array<{ platform: string; url: string }>;
+  adresse?: string | null;
+  codePostal?: string | null;
+}> = mappedFranchisees.length ? mappedFranchisees : franchiseLocatorSeed();
+
 // Géocodage au BUILD via la Base Adresse Nationale → ajoute { lat, lng } (null si non localisable).
-const geocoded = await geocodeAll(mappedFranchisees);
+const geocoded = await geocodeAll(franchiseeSeed);
 // On retire les champs d'adresse bruts avant de transmettre au composant client.
-const franchisees = geocoded.map(({ adresse, codePostal, ...rest }) => rest);
-
-const placeholderFranchisees = [
-  { id: "demo-idf", name: "Camille Laurent", zone: "Île-de-France", ville: "Paris", imageUrl: "https://picsum.photos/seed/franchise-idf/800/1000", pageLink: "#franchises", lat: 48.8566, lng: 2.3522 },
-  { id: "demo-lyon", name: "Thomas Mercier", zone: "Lyon & Rhône-Alpes", ville: "Lyon", imageUrl: "https://picsum.photos/seed/franchise-lyon/800/1000", pageLink: "#franchises", lat: 45.764, lng: 4.8357 },
-  { id: "demo-paca", name: "Sofia Benali", zone: "PACA", ville: "Marseille", imageUrl: "https://picsum.photos/seed/franchise-paca/800/1000", pageLink: "#franchises", lat: 43.2965, lng: 5.3698 },
-  { id: "demo-ouest", name: "Hugo Lefèvre", zone: "Nantes & Grand Ouest", ville: "Nantes", imageUrl: "https://picsum.photos/seed/franchise-ouest/800/1000", pageLink: "#franchises", lat: 47.2184, lng: -1.5536 },
-  { id: "demo-nord", name: "Léa Dubois", zone: "Hauts-de-France", ville: "Lille", imageUrl: "https://picsum.photos/seed/franchise-nord/800/1000", pageLink: "#franchises", lat: 50.6292, lng: 3.0573 },
-  { id: "demo-sud", name: "Antoine Roux", zone: "Occitanie", ville: "Toulouse", imageUrl: "https://picsum.photos/seed/franchise-sud/800/1000", pageLink: "#franchises", lat: 43.6047, lng: 1.4442 },
-];
-
-const displayFranchisees = franchisees.length ? franchisees : placeholderFranchisees;
+const displayFranchisees = geocoded.map(({ adresse, codePostal, ...rest }) => rest);
 
 // Témoignages clients (marquee sous « Dernières visites virtuelles »).
 // Tolérant : placeholders de démo tant qu'aucun témoignage n'est saisi dans le Studio.

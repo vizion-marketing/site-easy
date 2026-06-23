@@ -17,6 +17,8 @@ type Sector = {
   description: string;
   /** Illustration (brandable Sanity plus tard). */
   image: string;
+  /** Met la carte en avant : cadre orange + libellé « Coup de cœur ». */
+  featured?: boolean;
 };
 
 type Props = {
@@ -54,6 +56,7 @@ function ArrowIcon({ className = "" }: { className?: string }) {
 const DEFAULT_SECTORS: Sector[] = [
   {
     id: "immobilier",
+    featured: true,
     badge: "Qualification à distance",
     title: "Immobilier",
     description:
@@ -62,6 +65,7 @@ const DEFAULT_SECTORS: Sector[] = [
   },
   {
     id: "renovation",
+    featured: true,
     badge: "Relevés & plans",
     title: "Rénovation",
     description:
@@ -70,6 +74,7 @@ const DEFAULT_SECTORS: Sector[] = [
   },
   {
     id: "industrie",
+    featured: true,
     badge: "Formation & sécurité",
     title: "Industrie",
     description:
@@ -181,7 +186,7 @@ export default function SecteursBenefices({
 
         {/* EN-TÊTE DE SECTION (aligné à gauche) + contrôles du slider (haut-droite, md+) */}
         <div className="mb-14 flex flex-col gap-10 md:mb-16 md:flex-row md:items-end md:justify-between md:gap-12">
-          <div className="max-w-3xl text-left">
+          <div className="max-w-4xl text-left">
             <Eyebrow>{eyebrow}</Eyebrow>
             <h2 className="mt-4 font-heading text-4xl font-bold leading-[1.05] tracking-tight text-[#0a0a0a] md:text-5xl lg:text-6xl">
               {titlePart1}
@@ -215,14 +220,25 @@ export default function SecteursBenefices({
         </div>
 
         {/* PISTE DU SLIDER — défilement horizontal + scroll-snap, bleed jusqu'aux
-           bords du conteneur (marges négatives qui annulent le padding latéral). */}
-        <div
-          ref={trackRef}
-          className="-mx-6 flex snap-x snap-mandatory scroll-pl-6 gap-5 overflow-x-auto px-6 pb-12 pt-2 sm:-mx-8 sm:scroll-pl-8 sm:px-8 md:gap-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {sectors.map((s) => (
-            <SectorCard key={s.id} sector={s} />
-          ))}
+           bords du conteneur (marges négatives qui annulent le padding latéral).
+           Enveloppe relative pour porter le dégradé de fondu sur le bord droit. */}
+        <div className="relative -mx-6 sm:-mx-8">
+          <div
+            ref={trackRef}
+            className="flex snap-x snap-mandatory scroll-pl-6 gap-5 overflow-x-auto px-6 pb-12 pt-2 sm:scroll-pl-8 sm:px-8 md:gap-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {sectors.map((s) => (
+              <SectorCard key={s.id} sector={s} />
+            ))}
+          </div>
+
+          {/* Dégradé de fondu (droite) — fait disparaître en douceur les cartes qui
+             sortent du cadre, vers le fond de section. pointer-events-none pour ne
+             pas bloquer le défilement tactile. */}
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#f6f6f7] to-transparent sm:w-24 md:w-32"
+            aria-hidden="true"
+          />
         </div>
 
         {/* PIED DE SECTION — relance vers le contact */}
@@ -245,7 +261,9 @@ export default function SecteursBenefices({
 function SectorCard({ sector }: { sector: Sector }) {
   return (
     <article
-      className={`group relative aspect-[3/4] w-[78vw] shrink-0 snap-start overflow-hidden rounded-3xl bg-zinc-100 transition-shadow duration-300 sm:w-[340px] lg:w-[380px] ${TILE_SHADOW}`}
+      className={`group relative aspect-[3/4] w-[78vw] shrink-0 snap-start overflow-hidden rounded-3xl bg-zinc-100 transition-shadow duration-300 sm:w-[340px] lg:w-[380px] ${TILE_SHADOW} ${
+        sector.featured ? "ring-2 ring-[#FF6600]" : ""
+      }`}
     >
       <img
         src={sector.image}
@@ -254,15 +272,21 @@ function SectorCard({ sector }: { sector: Sector }) {
         loading="lazy"
       />
 
-      {/* Voile dégradé */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-transparent" aria-hidden="true" />
+      {/* Voile dégradé orange easyJet (#FF6600) — limité au bas de la carte (n'atteint
+         pas le haut) */}
+      <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#FF6600] via-[#FF6600]/60 to-transparent" aria-hidden="true" />
 
-      {/* Chip badge (haut-gauche) */}
-      <div className="absolute left-6 top-6">
-        <span className="inline-flex items-center rounded-full border border-white/30 bg-white/10 px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white backdrop-blur-md">
-          {sector.badge}
-        </span>
-      </div>
+      {/* Libellé « Coup de cœur » — bloc d'angle collé en haut à gauche : coin
+         supérieur gauche arrondi (aligné sur la carte) et coin inférieur droit
+         arrondi (creux intérieur), les deux autres coins droits sur les bords. */}
+      {sector.featured && (
+        <div className="absolute left-0 top-0 z-10 inline-flex items-center gap-2 rounded-tl-3xl rounded-br-[1.75rem] bg-[#FF6600] py-3 pl-5 pr-6 text-white shadow-lg shadow-orange-900/20">
+          <svg className="h-[18px] w-[18px] shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+          </svg>
+          <span className="text-sm font-bold tracking-tight">Coup de cœur</span>
+        </div>
+      )}
 
       {/* Contenu blanc en bas */}
       <div className="absolute inset-x-0 bottom-0 p-8 md:p-10">

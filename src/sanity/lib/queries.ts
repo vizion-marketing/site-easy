@@ -48,5 +48,6 @@ export const CAS_USAGES_QUERY = `*[_type == "casUsage"]|order(order asc, title a
 }`;
 
 export const FRANCHISEES_QUERY = `*[_type == "franchisee"]|order(nom asc){
-  _id, prenom, nom, zone, photo, pageLink, ville, codePostal, adresse
+  _id, prenom, nom, zone, photo, pageLink, ville, codePostal, adresse,
+  description, noteGoogle, avisGoogle, ficheGoogle, reseaux[]{plateforme, url}
 }`;

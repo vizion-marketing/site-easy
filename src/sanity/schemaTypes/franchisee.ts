@@ -7,6 +7,7 @@ export const franchisee = defineType({
   groups: [
     { name: "identite", title: "Identité", default: true },
     { name: "localisation", title: "Localisation" },
+    { name: "vitrine", title: "Vitrine & avis" },
   ],
   fields: [
     defineField({
@@ -67,10 +68,75 @@ export const franchisee = defineType({
     }),
     defineField({
       name: "pageLink",
-      title: "Lien de la page",
+      title: "Lien de la page (landing page)",
       type: "url",
       group: "identite",
-      description: "Lien vers la page du franchisé",
+      description: "Lien vers la landing page du franchisé",
+    }),
+    // --- Vitrine du store locator (encart sur la photo) ---
+    defineField({
+      name: "description",
+      title: "Description",
+      type: "text",
+      rows: 3,
+      group: "vitrine",
+      description: "Présentation courte affichée dans l'encart du store locator (2 lignes visibles).",
+    }),
+    defineField({
+      name: "noteGoogle",
+      title: "Note Google",
+      type: "number",
+      group: "vitrine",
+      description: "Note moyenne Google sur 5 (ex. 4.9).",
+      validation: (rule) => rule.min(0).max(5),
+    }),
+    defineField({
+      name: "avisGoogle",
+      title: "Nombre d'avis Google",
+      type: "number",
+      group: "vitrine",
+      validation: (rule) => rule.min(0).integer(),
+    }),
+    defineField({
+      name: "ficheGoogle",
+      title: "Fiche Google My Business",
+      type: "url",
+      group: "vitrine",
+      description: "Lien vers la fiche Google (Google My Business / Google Maps).",
+    }),
+    defineField({
+      name: "reseaux",
+      title: "Réseaux sociaux",
+      type: "array",
+      group: "vitrine",
+      of: [
+        {
+          type: "object",
+          name: "reseau",
+          fields: [
+            {
+              name: "plateforme",
+              title: "Plateforme",
+              type: "string",
+              options: {
+                list: [
+                  { title: "Instagram", value: "instagram" },
+                  { title: "LinkedIn", value: "linkedin" },
+                  { title: "Facebook", value: "facebook" },
+                ],
+              },
+              validation: (rule: { required: () => unknown }) => rule.required(),
+            },
+            {
+              name: "url",
+              title: "Lien",
+              type: "url",
+              validation: (rule: { required: () => unknown }) => rule.required(),
+            },
+          ],
+          preview: { select: { title: "plateforme", subtitle: "url" } },
+        },
+      ],
     }),
   ],
   preview: {

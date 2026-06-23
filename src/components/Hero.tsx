@@ -98,6 +98,15 @@ export default function Hero() {
                       </svg>
                       <span className="text-sm font-semibold tracking-tight text-white">Partenaire Matterport</span>
                     </span>
+                    {/* Partenaire bimwiq data — icône « data » placeholder (à remplacer par le logo officiel) */}
+                    <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3.5 py-2 backdrop-blur-sm">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 text-white" aria-hidden="true">
+                        <ellipse cx="12" cy="5" rx="8" ry="3" />
+                        <path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5" />
+                        <path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6" />
+                      </svg>
+                      <span className="text-sm font-semibold tracking-tight text-white">Partenaire bimwiq data</span>
+                    </span>
                   </div>
                 </div>
 

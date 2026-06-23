@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Eyebrow from "./Eyebrow";
 import ContactBear from "./ContactBear";
+import { FRANCHISE_AVATARS } from "../lib/franchises";
 
 /* ------------------------------------------------------------------ *
  * Section « Comment ça se passe » — expérience SCROLL-SNAP plein écran.
@@ -166,8 +167,7 @@ const SINGLE_PATH: ProcessPath = {
       description: "Votre représentant local vient sur place et numérise votre lieu en 3D. Vous n'avez rien à préparer : on s'occupe de tout.",
       image: "/03easy.png",
       icon: ICONS.camera,
-      // TODO: remplacer par les vraies photos de franchisés (déposer dans public/franchises/).
-      gallery: ["/didier.png", "/didier.png", "/didier.png", "/didier.png", "/didier.png", "/didier.png"],
+      gallery: FRANCHISE_AVATARS,
     },
     {
       id: "04",
@@ -295,6 +295,7 @@ function LogosRow({ logos, className = "" }: { logos: { name: string; node: Reac
 /* Bandeau discret de franchisés — avatars empilés (face pile) + libellé, placé sous le texte. */
 function FranchiseePile({ images, className = "" }: { images: string[]; className?: string }) {
   const shown = images.slice(0, 5);
+  const extra = images.length - shown.length;
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       <div className="flex -space-x-3">
@@ -303,6 +304,11 @@ function FranchiseePile({ images, className = "" }: { images: string[]; classNam
             <img src={src} alt="" loading="lazy" className="h-full w-full object-cover" />
           </div>
         ))}
+        {extra > 0 && (
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[11px] font-bold text-[#FF6600] shadow-md ring-2 ring-white/80">
+            +{extra}
+          </div>
+        )}
       </div>
       <span className="text-sm font-medium leading-tight text-white/85">Un représentant local<br className="hidden sm:block" /> près de chez vous</span>
     </div>

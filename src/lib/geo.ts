@@ -28,7 +28,13 @@ export function formatDistance(km: number): string {
   return `${Math.round(km).toLocaleString("fr-FR")} km`;
 }
 
-export type IpLocation = LatLng & { city?: string; region?: string };
+export type IpLocation = LatLng & { city?: string; region?: string; accuracyKm?: number };
+
+// Au-delà de ce rayon (km), la géoloc IP n'est qu'au niveau région/pays : pour une IP
+// française non résolue à la ville, geojs renvoie alors **Paris (48.86, 2.34) par défaut**,
+// ce qui plaçait à tort « l'expert le plus proche » à Paris pour tout le monde. On rejette
+// ces résultats grossiers (le visiteur peut affiner via le bouton GPS « Me localiser »).
+const MAX_IP_ACCURACY_KM = 100;
 
 // Fournisseurs de géoloc IP, gratuits / sans clé / HTTPS / CORS. Essayés dans l'ordre :
 // le premier qui répond correctement gagne (résilience aux 403 / quotas / pannes).
@@ -39,12 +45,20 @@ const toNum = (v: unknown): number => (typeof v === "number" ? v : parseFloat(St
 const IP_PROVIDERS: IpProvider[] = [
   {
     // geojs.io — CORS permissif, sans quota strict (latitude/longitude en chaînes).
+    // `accuracy` est un rayon en km : sert à écarter les réponses niveau pays (= Paris).
     url: "https://get.geojs.io/v1/ip/geo.json",
     parse: (d) => {
       const lat = toNum(d?.latitude);
       const lng = toNum(d?.longitude);
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-      return { lat, lng, city: d?.city, region: d?.region };
+      const accuracyKm = toNum(d?.accuracy);
+      return {
+        lat,
+        lng,
+        city: d?.city,
+        region: d?.region,
+        accuracyKm: Number.isFinite(accuracyKm) ? accuracyKm : undefined,
+      };
     },
   },
   {
@@ -82,7 +96,11 @@ export async function fetchIpLocation(signal?: AbortSignal): Promise<IpLocation 
       const res = await fetch(provider.url, { signal });
       if (!res.ok) continue;
       const loc = provider.parse(await res.json());
-      if (loc) return loc;
+      if (!loc) continue;
+      // Résolution trop grossière (niveau région/pays → Paris par défaut en France) :
+      // inexploitable pour un store locator, on tente le fournisseur suivant.
+      if (loc.accuracyKm != null && loc.accuracyKm > MAX_IP_ACCURACY_KM) continue;
+      return loc;
     } catch {
       // Réseau coupé / requête annulée → on tente le fournisseur suivant.
     }

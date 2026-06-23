@@ -41,10 +41,10 @@ const MESH_BRAND = {
 };
 
 /* Icônes blanches des 4 cartes (SVG inline, même design que les pastilles de cas d'usages) :
-   conseil · livraison 48h · présence France · technologie. Même ordre que `cards`. */
+   qualité des livrables · livraison 48h · présence France · technologie. Même ordre que `cards`. */
 const CARD_ICONS = [
-  // Conseil — ampoule (idée / accompagnement)
-  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 18h6" /><path d="M10 22h4" /><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 1 0 6 8c0 1 .23 2.23 1.5 3.5.76.76 1.23 1.52 1.41 2.5" /></svg>,
+  // Qualité des livrables — médaille / sceau d'excellence
+  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6" /><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" /></svg>,
   // Livraison 48h — horloge
   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" /></svg>,
   // Présence France — repère carte
@@ -67,10 +67,10 @@ export default function Specificites({
   panelEyebrow = "Standard premium",
   panelCaption = "Le jumeau numérique ultra-réaliste",
   cards = [
-    { title: "Une véritable notion de conseil", description: "Un accompagnement de bout en bout pour faire de votre visite virtuelle un outil performant, pas une simple captation." },
-    { title: "Livraison en 48h", description: "De la captation à la mise en ligne, votre visite virtuelle est prête en deux jours." },
-    { title: "Présence partout en France", description: "Un réseau local proche de vous, pour un accompagnement humain où que vous soyez." },
-    { title: "La technologie la plus avancée du marché", description: "Matterport : un jumeau numérique ultra-réaliste, référence mondiale de la visite virtuelle." },
+    { title: "Une attention particulière à la qualité des livrables", description: "Notre système de franchise garantit cette exigence : des franchisés formés aux mêmes méthodes, pour un livrable premium et homogène partout." },
+    { title: "Livraison en 48h", description: "De la captation à la mise en ligne en deux jours. Et une vraie proximité humaine : votre interlocuteur n'est pas un simple exécutant, mais un conseiller investi dans la réussite de votre projet." },
+    { title: "Une présence partout en France", description: "Un réseau local proche de vous, en France comme à l'international, pour un accompagnement humain où que soit votre projet." },
+    { title: "Des visites virtuelles en avance sur le marché", description: "Au-delà du standard Matterport, notre partenariat avec Treedis enrichit vos visites de fonctionnalités interactives inédites." },
   ],
 }: Props) {
   return (
@@ -144,6 +144,38 @@ export default function Specificites({
                   <p className="mt-2 text-sm leading-relaxed text-gray-600">{card.description}</p>
                 </div>
               ))}
+            </div>
+
+            {/* Bandeau technologies partenaires — Matterport + Treedis (wordmarks SVG inline,
+                placeholders à remplacer par les assets officiels). */}
+            <div className="mt-12 flex flex-col gap-y-5 border-t border-[#e5e7eb] pt-8 sm:flex-row sm:items-center sm:gap-x-10">
+              <span className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-400">
+                Nos technologies partenaires
+              </span>
+
+              <div className="flex items-center gap-x-8">
+                {/* Matterport */}
+                <div className="group flex cursor-default items-center gap-2.5 opacity-60 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0">
+                  <svg viewBox="0 0 24 24" className="h-6 w-6 text-[#0a0a0a]" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                    <path d="M5 5h3v3H5zM10.5 5h3v3h-3zM16 5h3v3h-3zM5 10.5h3v3H5zM10.5 10.5h3v3h-3zM16 10.5h3v3h-3zM5 16h3v3H5zM10.5 16h3v3h-3zM16 16h3v3h-3z" fill="currentColor" stroke="none" />
+                  </svg>
+                  <span className="font-heading text-lg font-bold tracking-tight text-[#0a0a0a]">Matterport</span>
+                </div>
+
+                {/* Séparateur fin */}
+                <div className="h-4 w-px bg-gray-200" aria-hidden="true" />
+
+                {/* Treedis */}
+                <div className="group flex cursor-default items-center gap-2 opacity-60 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0">
+                  <svg viewBox="0 0 24 24" className="h-6 w-6 text-[#0a0a0a]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="6" r="2" />
+                    <circle cx="6" cy="18" r="2" />
+                    <circle cx="18" cy="18" r="2" />
+                    <path d="M12 8v4M12 12H6v4M12 12h6v4" opacity="0.5" />
+                  </svg>
+                  <span className="font-heading text-lg font-bold tracking-tight text-[#0a0a0a]">treedis</span>
+                </div>
+              </div>
             </div>
           </div>
 
