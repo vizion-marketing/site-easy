@@ -94,6 +94,12 @@ export default function ContactVideoDock({
   // Apparition douce de la bulle vidéo au montage.
   const [bubbleMounted, setBubbleMounted] = useState(false);
   useEffect(() => {
+    // Mobile-first : sous lg, la bulle vidéo démarre repliée (pastille « Revoir
+    // la vidéo ») pour ne pas recouvrir le contenu ; l'utilisateur la déplie d'un
+    // tap. Sur ≥ lg, elle s'affiche directement.
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      setIsVideoMinimized(true);
+    }
     const raf = requestAnimationFrame(() => setBubbleMounted(true));
     return () => cancelAnimationFrame(raf);
   }, []);

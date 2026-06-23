@@ -487,7 +487,7 @@ export default function Navbar({
           </a>
           <a
             href="#devis"
-            className="bg-[#FF6600] text-white hover:bg-[#e85c00] px-6 py-3 rounded-full text-sm font-semibold transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+            className="whitespace-nowrap bg-[#FF6600] text-white hover:bg-[#e85c00] px-4 py-2.5 sm:px-6 sm:py-3 rounded-full text-sm font-semibold transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
           >
             Demander un devis
           </a>
@@ -527,7 +527,7 @@ export default function Navbar({
 
       {/* Secteurs d'activités */}
       <div
-        className={`pointer-events-none absolute top-full left-0 w-full transition-all duration-300 origin-top ${
+        className={`hidden md:block pointer-events-none absolute top-full left-0 w-full transition-all duration-300 origin-top ${
           activeMenu === "secteurs" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2"
         }`}
       >
@@ -596,7 +596,7 @@ export default function Navbar({
 
       {/* Cas d'usages */}
       <div
-        className={`pointer-events-none absolute top-full left-0 w-full transition-all duration-300 origin-top ${
+        className={`hidden md:block pointer-events-none absolute top-full left-0 w-full transition-all duration-300 origin-top ${
           activeMenu === "usages" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2"
         }`}
       >
@@ -682,7 +682,7 @@ export default function Navbar({
 
       {/* Ressources */}
       <div
-        className={`pointer-events-none absolute top-full left-0 w-full transition-all duration-300 origin-top ${activeMenu === "ressources" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2"}`}
+        className={`hidden md:block pointer-events-none absolute top-full left-0 w-full transition-all duration-300 origin-top ${activeMenu === "ressources" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2"}`}
       >
         <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
           <div
@@ -769,7 +769,7 @@ export default function Navbar({
 
       {/* Dernières visites */}
       <div
-        className={`pointer-events-none absolute top-full left-0 w-full transition-all duration-300 origin-top ${activeMenu === "visites" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2"}`}
+        className={`hidden md:block pointer-events-none absolute top-full left-0 w-full transition-all duration-300 origin-top ${activeMenu === "visites" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2"}`}
       >
         <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
           <div
