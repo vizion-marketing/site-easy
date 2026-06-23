@@ -7,19 +7,23 @@ import AboutBento from "../components/AboutBento.tsx";
 import VirtualTourPilot from "../components/VirtualTourPilot.tsx";
 import Specificites from "../components/Specificites.tsx";
 import UseCases from "../components/UseCases.tsx";
-import HowItWorks from "../components/HowItWorks.tsx";
+import SecteursBenefices from "../components/SecteursBenefices.tsx";
+import ProcessTimeline from "../components/ProcessTimeline.tsx";
 import Franchises from "../components/Franchises.tsx";
+import TestimonialsWall from "../components/TestimonialsWall.tsx";
 import ContactCTA from "../components/ContactCTA.tsx";
 import FAQ from "../components/FAQ.tsx";
 import ContactVideoDock from "../components/ContactVideoDock.tsx";
 import { sanityClient } from "sanity:client";
 import { urlFor } from "../sanity/lib/image";
+import { geocodeAll } from "../sanity/lib/geocode";
 import {
   ALL_TOURS_QUERY,
   SECTEURS_QUERY,
   CAS_USAGES_QUERY,
   FRANCHISEES_QUERY,
   FAQ_QUERY,
+  TESTIMONIALS_QUERY,
 } from "../sanity/lib/queries";
 
 type TourDoc = {
@@ -30,6 +34,8 @@ type TourDoc = {
   clientLogo?: unknown;
   location?: string;
   secteur?: string;
+  casUsages?: string[];
+  description?: string;
   coverImage?: unknown;
   tourUrl?: string;
 };
@@ -64,6 +70,9 @@ const tours = (tourDocs ?? []).slice(0, 8).map((t) => ({
     : null,
   // Pas encore de route /visites/[slug] : on pointe sur l'embed s'il existe, sinon ancre.
   href: t.tourUrl ?? "#visites",
+  // Cas d'usage principal (1er tag) + mini description (texte brut du blockContent).
+  useCase: t.casUsages?.[0],
+  description: t.description,
 }));
 
 // Taxonomies du méga-menu (tags des visites). Tolérant : si Sanity n'est pas prêt
@@ -112,17 +121,58 @@ const DEMO_LOGOS = [
 
 // Données de démonstration tant qu'aucune visite n'est saisie dans le Studio (/admin).
 const placeholderTours = [
-  { title: "Villa Horizon", client: "Barnes", location: "Cannes", category: "Immobilier", imageUrl: "https://picsum.photos/seed/villa/640/400", href: "#visites" },
-  { title: "Hôtel Le Belvédère", client: "Groupe Accor", location: "Annecy", category: "Hôtellerie", imageUrl: "https://picsum.photos/seed/hotel/640/400", href: "#visites" },
-  { title: "Showroom Atelier 9", client: "Maison Dôme", location: "Paris 8e", category: "Retail", imageUrl: "https://picsum.photos/seed/showroom/640/400", href: "#visites" },
-  { title: "Musée des Arts", client: "Ville de Lyon", location: "Lyon", category: "Culture", imageUrl: "https://picsum.photos/seed/musee/640/400", href: "#visites" },
-  { title: "Résidence Les Pins", client: "Nexity", location: "Bordeaux", category: "Immobilier", imageUrl: "https://picsum.photos/seed/residence/640/400", href: "#visites" },
-  { title: "Camping Bord de Mer", client: "Huttopia", location: "Biarritz", category: "Tourisme", imageUrl: "https://picsum.photos/seed/camping/640/400", href: "#visites" },
-  { title: "Espace Coworking Nova", client: "Wojo", location: "Nantes", category: "Bureaux", imageUrl: "https://picsum.photos/seed/coworking/640/400", href: "#visites" },
-  { title: "Boutique Flagship", client: "Le Slip Français", location: "Marseille", category: "Retail", imageUrl: "https://picsum.photos/seed/boutique/640/400", href: "#visites" },
+  { title: "Villa Horizon", client: "Barnes", location: "Cannes", category: "Immobilier", useCase: "Génération de lead", description: "Une villa d'exception mise en scène en 360° pour capter des acheteurs qualifiés avant la première visite.", imageUrl: "https://picsum.photos/seed/villa/640/400", href: "#visites", testimonial: { quote: "La visite 360° a divisé par deux nos visites physiques inutiles : seuls les acheteurs vraiment décidés se déplacent.", author: "Camille Rousseau", role: "Directrice, Barnes Côte d'Azur", avatar: "https://i.pravatar.cc/96?img=47" } },
+  { title: "Hôtel Le Belvédère", client: "Groupe Accor", location: "Annecy", category: "Hôtellerie", useCase: "Expérience innovante", description: "Chambres, spa et vues sur le lac : une visite immersive qui donne envie de réserver.", imageUrl: "https://picsum.photos/seed/hotel/640/400", href: "#visites" },
+  { title: "Showroom Atelier 9", client: "Maison Dôme", location: "Paris 8e", category: "Retail", useCase: "Expérience innovante", description: "Un showroom explorable 24h/24, fiches produits intégrées directement au parcours.", imageUrl: "https://picsum.photos/seed/showroom/640/400", href: "#visites" },
+  { title: "Musée des Arts", client: "Ville de Lyon", location: "Lyon", category: "Culture", useCase: "Expérience innovante", description: "Le parcours des collections en accès libre, pour préparer ou prolonger la visite sur place.", imageUrl: "https://picsum.photos/seed/musee/640/400", href: "#visites" },
+  { title: "Résidence Les Pins", client: "Nexity", location: "Bordeaux", category: "Immobilier", useCase: "Qualification de leads", description: "Programme neuf visitable à distance : seuls les acquéreurs décidés se déplacent.", imageUrl: "https://picsum.photos/seed/residence/640/400", href: "#visites" },
+  { title: "Camping Bord de Mer", client: "Huttopia", location: "Biarritz", category: "Tourisme", useCase: "Génération de lead", description: "Emplacements et hébergements en 360° pour booster les réservations en ligne.", imageUrl: "https://picsum.photos/seed/camping/640/400", href: "#visites" },
+  { title: "Espace Coworking Nova", client: "Wojo", location: "Nantes", category: "Bureaux", useCase: "Marque employeur", description: "Espaces de travail et services présentés en immersion pour séduire de nouveaux membres.", imageUrl: "https://picsum.photos/seed/coworking/640/400", href: "#visites" },
+  { title: "Boutique Flagship", client: "Le Slip Français", location: "Marseille", category: "Retail", useCase: "Expérience innovante", description: "Le flagship en visite interactive, prolongement digital de l'expérience en magasin.", imageUrl: "https://picsum.photos/seed/boutique/640/400", href: "#visites" },
 ].map((t, i) => ({ ...t, clientLogo: DEMO_LOGOS[i % DEMO_LOGOS.length] }));
 
 const displayTours = tours.length ? tours : placeholderTours;
+
+// Sélection « coup de cœur » mise en avant dans la section bento (3 visites).
+// La 1re est la grande tuile featured (gauche), les 2 suivantes sont empilées à droite.
+// TODO : remplacer les imageUrl placeholder par les vraies coverImages (Studio /admin).
+const coupDeCoeurTours = [
+  {
+    title: "Le musée imaginaire d'Oli",
+    category: "Culture",
+    imageUrl: "https://picsum.photos/seed/musee-imaginaire-oli/900/1100",
+    href: "#visites",
+  },
+  {
+    title: "Le lycée entre Meurthe et Sanon",
+    category: "Éducation",
+    location: "Dombasle-sur-Meurthe",
+    imageUrl: "https://picsum.photos/seed/lycee-meurthe-sanon/900/600",
+    href: "#visites",
+  },
+  {
+    title: "Le magasin école pour McDonald's",
+    client: "McDonald's",
+    category: "Formation",
+    imageUrl: "https://picsum.photos/seed/magasin-ecole-mcdonalds/900/600",
+    href: "#visites",
+  },
+  // 2 placeholders — à remplacer par de vraies visites (Studio /admin).
+  {
+    title: "Hôtel Le Belvédère",
+    category: "Hôtellerie",
+    location: "Annecy",
+    imageUrl: "https://picsum.photos/seed/hotel-belvedere/900/600",
+    href: "#visites",
+  },
+  {
+    title: "Showroom Atelier 9",
+    category: "Retail",
+    location: "Paris 8e",
+    imageUrl: "https://picsum.photos/seed/showroom-atelier-9/900/600",
+    href: "#visites",
+  },
+];
 
 // Réseau de franchisés (section moteur de recherche + portrait dynamique).
 // Tolérant : franchisés de démo tant qu'aucun document n'est saisi dans le Studio.
@@ -133,6 +183,9 @@ type FranchiseeDoc = {
   zone?: string;
   photo?: unknown;
   pageLink?: string;
+  ville?: string;
+  codePostal?: string;
+  adresse?: string;
 };
 
 let franchiseeDocs: FranchiseeDoc[] = [];
@@ -142,28 +195,82 @@ try {
   console.warn("[index] Échec du fetch Sanity des franchisés — placeholders utilisés.", err);
 }
 
-const franchisees = (franchiseeDocs ?? [])
+const mappedFranchisees = (franchiseeDocs ?? [])
   .filter((f) => f.prenom || f.nom)
   .map((f) => ({
     id: f._id,
     name: [f.prenom, f.nom].filter(Boolean).join(" "),
     zone: f.zone ?? "",
+    ville: f.ville ?? "",
     imageUrl: f.photo
       ? urlFor(f.photo).width(800).height(1000).fit("crop").url()
       : null,
     pageLink: f.pageLink,
+    // champs d'adresse — servent au géocodage au build puis sont retirés du payload client
+    adresse: f.adresse,
+    codePostal: f.codePostal,
   }));
 
+// Géocodage au BUILD via la Base Adresse Nationale → ajoute { lat, lng } (null si non localisable).
+const geocoded = await geocodeAll(mappedFranchisees);
+// On retire les champs d'adresse bruts avant de transmettre au composant client.
+const franchisees = geocoded.map(({ adresse, codePostal, ...rest }) => rest);
+
 const placeholderFranchisees = [
-  { id: "demo-idf", name: "Camille Laurent", zone: "Île-de-France", imageUrl: "https://picsum.photos/seed/franchise-idf/800/1000", pageLink: "#franchises" },
-  { id: "demo-lyon", name: "Thomas Mercier", zone: "Lyon & Rhône-Alpes", imageUrl: "https://picsum.photos/seed/franchise-lyon/800/1000", pageLink: "#franchises" },
-  { id: "demo-paca", name: "Sofia Benali", zone: "PACA", imageUrl: "https://picsum.photos/seed/franchise-paca/800/1000", pageLink: "#franchises" },
-  { id: "demo-ouest", name: "Hugo Lefèvre", zone: "Nantes & Grand Ouest", imageUrl: "https://picsum.photos/seed/franchise-ouest/800/1000", pageLink: "#franchises" },
-  { id: "demo-nord", name: "Léa Dubois", zone: "Hauts-de-France", imageUrl: "https://picsum.photos/seed/franchise-nord/800/1000", pageLink: "#franchises" },
-  { id: "demo-sud", name: "Antoine Roux", zone: "Occitanie", imageUrl: "https://picsum.photos/seed/franchise-sud/800/1000", pageLink: "#franchises" },
+  { id: "demo-idf", name: "Camille Laurent", zone: "Île-de-France", ville: "Paris", imageUrl: "https://picsum.photos/seed/franchise-idf/800/1000", pageLink: "#franchises", lat: 48.8566, lng: 2.3522 },
+  { id: "demo-lyon", name: "Thomas Mercier", zone: "Lyon & Rhône-Alpes", ville: "Lyon", imageUrl: "https://picsum.photos/seed/franchise-lyon/800/1000", pageLink: "#franchises", lat: 45.764, lng: 4.8357 },
+  { id: "demo-paca", name: "Sofia Benali", zone: "PACA", ville: "Marseille", imageUrl: "https://picsum.photos/seed/franchise-paca/800/1000", pageLink: "#franchises", lat: 43.2965, lng: 5.3698 },
+  { id: "demo-ouest", name: "Hugo Lefèvre", zone: "Nantes & Grand Ouest", ville: "Nantes", imageUrl: "https://picsum.photos/seed/franchise-ouest/800/1000", pageLink: "#franchises", lat: 47.2184, lng: -1.5536 },
+  { id: "demo-nord", name: "Léa Dubois", zone: "Hauts-de-France", ville: "Lille", imageUrl: "https://picsum.photos/seed/franchise-nord/800/1000", pageLink: "#franchises", lat: 50.6292, lng: 3.0573 },
+  { id: "demo-sud", name: "Antoine Roux", zone: "Occitanie", ville: "Toulouse", imageUrl: "https://picsum.photos/seed/franchise-sud/800/1000", pageLink: "#franchises", lat: 43.6047, lng: 1.4442 },
 ];
 
 const displayFranchisees = franchisees.length ? franchisees : placeholderFranchisees;
+
+// Témoignages clients (marquee sous « Dernières visites virtuelles »).
+// Tolérant : placeholders de démo tant qu'aucun témoignage n'est saisi dans le Studio.
+type TestimonialDoc = {
+  _id: string;
+  quote?: string;
+  author?: string;
+  role?: string;
+  company?: string;
+  agency?: string;
+  avatar?: unknown;
+  rating?: number;
+};
+
+let testimonialDocs: TestimonialDoc[] = [];
+try {
+  testimonialDocs = await sanityClient.fetch<TestimonialDoc[]>(TESTIMONIALS_QUERY);
+} catch (err) {
+  console.warn("[index] Échec du fetch Sanity des témoignages — placeholders utilisés.", err);
+}
+
+const testimonialsData = (testimonialDocs ?? [])
+  .filter((t) => t.quote && t.author)
+  .map((t) => ({
+    quote: t.quote as string,
+    author: t.author as string,
+    role: t.role,
+    company: t.company,
+    agency: t.agency,
+    avatar: t.avatar ? urlFor(t.avatar).width(96).height(96).fit("crop").url() : null,
+    rating: t.rating,
+  }));
+
+// Placeholders de démo — avatars laissés à `null` : la carte affiche alors la pastille
+// d'initiales (repli neutre, sans dépendance externe) en attendant les vraies photos.
+const placeholderTestimonials = [
+  { quote: "La visite 360° a complètement changé notre prise de mandats : les vendeurs nous confient leur bien en voyant le rendu, et les acheteurs arrivent déjà convaincus.", author: "Camille Laurent", role: "Directrice d'agence", company: "Barnes Côte d'Azur", agency: "easyvirtual.tours PACA", avatar: null, rating: 5 },
+  { quote: "Mise en ligne en 48h, accompagnement au top. Nos chambres et le spa se vendent désormais en ligne avant même l'arrivée des clients.", author: "Thomas Mercier", role: "Directeur", company: "Hôtel Le Belvédère", agency: "easyvirtual.tours Annecy", avatar: null, rating: 5 },
+  { quote: "Un showroom visitable 24h/24, c'est un commercial qui ne dort jamais. Le taux de prise de contact a doublé en trois mois.", author: "Sofia Benali", role: "Responsable retail", company: "Maison Dôme", agency: "easyvirtual.tours Paris", avatar: null, rating: 5 },
+  { quote: "Qualité Matterport irréprochable et un réseau local vraiment réactif. On sent la différence avec une simple captation photo.", author: "Hugo Lefèvre", role: "Promoteur", company: "Nexity", agency: "easyvirtual.tours Bordeaux", avatar: null, rating: 5 },
+  { quote: "Nos visiteurs préparent leur venue grâce à la visite virtuelle du musée. C'est devenu un outil de médiation à part entière.", author: "Léa Dubois", role: "Chargée de projets", company: "Ville de Lyon", agency: "easyvirtual.tours Lyon", avatar: null, rating: 5 },
+  { quote: "Le rapport conseil / réalisation est ce qui m'a convaincu : easyvirtual.tours pense la visite comme un outil commercial, pas juste un joli rendu.", author: "Antoine Roux", role: "Gérant", company: "Camping Bord de Mer", agency: "easyvirtual.tours Biarritz", avatar: null, rating: 5 },
+];
+
+const displayTestimonials = testimonialsData.length ? testimonialsData : placeholderTestimonials;
 
 // FAQ — questions/réponses depuis Sanity (ordre `order`). Tolérant : si Sanity n'est
 // pas prêt ou qu'aucune question n'est saisie, la FAQ retombe sur ses défauts internes.
@@ -185,9 +292,11 @@ const faqItems = (faqDocs ?? [])
   <AboutBento client:visible />
   <VirtualTourPilot client:visible />
   <UseCases client:visible />
+  <ProcessTimeline client:visible />
+  <SecteursBenefices client:visible />
   <Specificites />
-  <HowItWorks client:visible />
-  <LatestTours client:visible tours={displayTours} />
+  <LatestTours client:visible tours={coupDeCoeurTours} />
+  <TestimonialsWall client:visible testimonials={displayTestimonials} />
   <Franchises client:visible franchisees={displayFranchisees} />
   <ContactCTA client:visible />
   <FAQ client:visible items={faqItems} />

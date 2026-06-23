@@ -12,14 +12,16 @@ export const FEATURED_TOURS_QUERY = `*[_type == "tour" && featured == true]|orde
   _id, title, slug, client, clientLogo, location, coverImage,
   "secteur": secteurs[0]->title,
   "secteurs": secteurs[]->title,
-  "casUsages": casUsages[]->title
+  "casUsages": casUsages[]->title,
+  "description": pt::text(description)
 }`;
 
 export const ALL_TOURS_QUERY = `*[_type == "tour"]|order(publishedAt desc){
   _id, title, slug, client, clientLogo, location, coverImage,
   "secteur": secteurs[0]->title,
   "secteurs": secteurs[]->title,
-  "casUsages": casUsages[]->title
+  "casUsages": casUsages[]->title,
+  "description": pt::text(description)
 }`;
 
 export const TOUR_BY_SLUG_QUERY = `*[_type == "tour" && slug.current == $slug][0]{
@@ -46,5 +48,5 @@ export const CAS_USAGES_QUERY = `*[_type == "casUsage"]|order(order asc, title a
 }`;
 
 export const FRANCHISEES_QUERY = `*[_type == "franchisee"]|order(nom asc){
-  _id, prenom, nom, zone, photo, pageLink
+  _id, prenom, nom, zone, photo, pageLink, ville, codePostal, adresse
 }`;

@@ -36,3 +36,6 @@ pnpm-debug.log*
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Cache de géocodage build-time (BAN)
+.geocode-cache.json

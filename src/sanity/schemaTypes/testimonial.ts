@@ -21,6 +21,12 @@ export const testimonial = defineType({
     defineField({ name: "role", title: "Fonction", type: "string" }),
     defineField({ name: "company", title: "Entreprise", type: "string" }),
     defineField({
+      name: "agency",
+      title: "Agence (franchise easyvirtual.tours)",
+      description: "Agence du réseau à laquelle l'avis Google est rattaché.",
+      type: "string",
+    }),
+    defineField({
       name: "avatar",
       title: "Photo",
       type: "image",

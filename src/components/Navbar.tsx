@@ -1,4 +1,4 @@
-import { useState, useEffect, type ComponentType } from "react";
+import { useState, useEffect, useRef, type ComponentType } from "react";
 import { LiquidGlass } from "./LiquidGlass";
 import {
   HomeMotion,
@@ -77,6 +77,10 @@ type TourItem = {
   client?: string;
   location?: string;
   category?: string;
+  /** Cas d'usage principal de la visite (1er tag `casUsages`). */
+  useCase?: string;
+  /** Mini description (texte brut extrait du blockContent `description`). */
+  description?: string;
   imageUrl: string | null;
   href: string;
 };
@@ -91,6 +95,12 @@ const MESH_BRAND = {
     "radial-gradient(at 92% 60%, #ff7c2a 0px, transparent 46%)," +
     "radial-gradient(at 12% 92%, #ee6000 0px, transparent 52%)," +
     "radial-gradient(at 50% 50%, #ff741c 0px, transparent 55%)",
+};
+
+/* Dégradé diagonal orange de marque — fond du bouton « play » des cartes de visite,
+   identique au gros bouton de lecture de la section « visite virtuelle » (VirtualTourPilot.tsx). */
+const BRAND_DIAGONAL = {
+  backgroundImage: "linear-gradient(40deg, #e85c00 0%, #FF6600 52%, #ff8a3d 100%)",
 };
 
 /* Lien de méga-menu : pastille carrée à dégradé mesh orange, icône blanche, animée au survol. */
@@ -196,25 +206,41 @@ function TourCard({ tour }: { tour: TourItem }) {
           </div>
         )}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-[#FF6600] shadow-lg transition-transform group-hover:scale-110">
-            <svg className="h-6 w-6 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+          <div
+            className="relative flex h-12 w-12 items-center justify-center rounded-full text-white shadow-[0_2px_8px_-3px_rgba(10,10,10,0.10),0_22px_48px_-18px_rgba(10,10,10,0.14)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_30px_-4px_rgba(255,102,0,0.55)] motion-reduce:transition-none"
+            style={BRAND_DIAGONAL}
+          >
+            <svg className="ml-0.5 h-6 w-6 fill-current" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M8 5v14l11-7z" />
             </svg>
+            <div className="pointer-events-none absolute inset-0 rounded-full bg-white/0 transition-colors duration-300 group-hover:bg-white/10" />
           </div>
         </div>
       </div>
-      <div className="mt-4">
+      <div className="mt-4 flex flex-col gap-1.5">
+        {tour.useCase && (
+          <div>
+            <span className="inline-flex items-center rounded-md bg-[#fff4ec] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.05em] text-[#FF6600]">
+              {tour.useCase}
+            </span>
+          </div>
+        )}
         <h4 className="font-heading font-semibold text-base text-[#0a0a0a] leading-tight group-hover:text-[#FF6600] transition-colors">
           {tour.title}
         </h4>
+        {tour.description && (
+          <p className="line-clamp-2 text-[13px] leading-relaxed text-gray-500">
+            {tour.description}
+          </p>
+        )}
         {meta && (
-          <p className="mt-1 flex items-center gap-1 text-sm text-gray-500">
+          <p className="flex items-center gap-1 text-[13px] text-gray-400">
             {tour.location && (
-              <svg className="h-3.5 w-3.5 shrink-0 text-gray-400" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <svg className="h-3.5 w-3.5 shrink-0 text-gray-400/70" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
               </svg>
             )}
-            <span>{meta}</span>
+            <span className="truncate">{meta}</span>
           </p>
         )}
       </div>
@@ -235,6 +261,20 @@ export default function Navbar({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const [isTourOpen, setIsTourOpen] = useState(false);
+
+  // Triangle connecteur méga-menu → item de nav : on mémorise le centre horizontal
+  // (relatif au <header>) de l'item survolé pour y aligner le caret.
+  const headerRef = useRef<HTMLElement>(null);
+  const [caretLeft, setCaretLeft] = useState<number | null>(null);
+
+  const openMega = (id: string, el: HTMLElement) => {
+    setActiveMenu(id);
+    const header = headerRef.current;
+    if (!header) return;
+    const hRect = header.getBoundingClientRect();
+    const iRect = el.getBoundingClientRect();
+    setCaretLeft(iRect.left - hRect.left + iRect.width / 2);
+  };
 
   // Modale visite pilote : fermeture à l'Échap + blocage du scroll de fond.
   useEffect(() => {
@@ -376,6 +416,7 @@ export default function Navbar({
   return (
     <>
     <header
+      ref={headerRef}
       className="sticky top-0 z-50"
       onMouseLeave={() => setActiveMenu(null)}
     >
@@ -410,7 +451,7 @@ export default function Navbar({
               <div
                 key={link.name}
                 className="relative"
-                onMouseEnter={() => link.type === "mega" && setActiveMenu(link.id || null)}
+                onMouseEnter={(e) => link.type === "mega" && openMega(link.id || "", e.currentTarget)}
               >
                 <a
                   href={link.href || "#"}
@@ -466,16 +507,35 @@ export default function Navbar({
         </LiquidGlass>
       </div>
 
+      {/* Triangle connecteur : losange blanc bordé posé à cheval sur le bord
+         supérieur du panneau, aligné sous l'item de nav actif. Sa moitié basse
+         est recouverte par le panneau (rendu après dans le DOM) → ne reste visible
+         que la pointe orientée vers l'item. */}
+      <div
+        className={`pointer-events-none absolute top-full left-0 z-0 hidden w-full md:block transition-opacity duration-200 ${
+          activeMenu ? "opacity-100" : "opacity-0"
+        }`}
+        aria-hidden="true"
+      >
+        <div
+          className="absolute h-3 w-3 -translate-x-1/2 translate-y-[2px] rotate-45 border-l border-t border-gray-100 bg-white"
+          style={{ left: caretLeft ?? 0 }}
+        />
+      </div>
+
       {/* --- MÉGA-MENUS (DESKTOP) --- */}
 
       {/* Secteurs d'activités */}
       <div
-        className={`absolute top-full left-0 w-full transition-all duration-300 origin-top ${
-          activeMenu === "secteurs" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2 pointer-events-none"
+        className={`pointer-events-none absolute top-full left-0 w-full transition-all duration-300 origin-top ${
+          activeMenu === "secteurs" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2"
         }`}
-        onMouseEnter={() => setActiveMenu("secteurs")}
       >
-        <div className="mx-auto w-full max-w-[var(--container)] px-6 pt-2 sm:px-8">
+        <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
+          <div
+            className={`w-fit max-w-full pt-2 ${activeMenu === "secteurs" ? "pointer-events-auto" : ""}`}
+            onMouseEnter={() => setActiveMenu("secteurs")}
+          >
           <div className="w-fit max-w-full rounded-2xl border border-gray-100 bg-white shadow-2xl">
             <div className="w-[880px] max-w-[calc(100vw-4rem)] px-8 py-10">
               {/* ZONE 1 — Secteurs mis en avant (cartes promo) */}
@@ -530,17 +590,21 @@ export default function Navbar({
               </div>
             </div>
           </div>
+          </div>
         </div>
       </div>
 
       {/* Cas d'usages */}
       <div
-        className={`absolute top-full left-0 w-full transition-all duration-300 origin-top ${
-          activeMenu === "usages" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2 pointer-events-none"
+        className={`pointer-events-none absolute top-full left-0 w-full transition-all duration-300 origin-top ${
+          activeMenu === "usages" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2"
         }`}
-        onMouseEnter={() => setActiveMenu("usages")}
       >
-        <div className="mx-auto w-full max-w-[var(--container)] px-6 pt-2 sm:px-8">
+        <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
+          <div
+            className={`w-fit max-w-full pt-2 ${activeMenu === "usages" ? "pointer-events-auto" : ""}`}
+            onMouseEnter={() => setActiveMenu("usages")}
+          >
           <div className="w-fit max-w-full rounded-2xl border border-gray-100 bg-white shadow-2xl">
             <div className="px-8 py-10 flex">
           {/* ZONE 1 — Cas d'usages (zone dominante) */}
@@ -612,15 +676,19 @@ export default function Navbar({
           </div>
             </div>
           </div>
+          </div>
         </div>
       </div>
 
       {/* Ressources */}
       <div
-        className={`absolute top-full left-0 w-full transition-all duration-300 origin-top ${activeMenu === "ressources" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2 pointer-events-none"}`}
-        onMouseEnter={() => setActiveMenu("ressources")}
+        className={`pointer-events-none absolute top-full left-0 w-full transition-all duration-300 origin-top ${activeMenu === "ressources" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2"}`}
       >
-        <div className="mx-auto w-full max-w-[var(--container)] px-6 pt-2 sm:px-8">
+        <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
+          <div
+            className={`w-fit max-w-full pt-2 ${activeMenu === "ressources" ? "pointer-events-auto" : ""}`}
+            onMouseEnter={() => setActiveMenu("ressources")}
+          >
           <div className="w-fit max-w-full rounded-2xl border border-gray-100 bg-white shadow-2xl">
             <div className="px-8 py-10 flex">
           {/* ZONE 1 dominante : Découvrir la visite virtuelle */}
@@ -695,15 +763,19 @@ export default function Navbar({
           </div>
             </div>
           </div>
+          </div>
         </div>
       </div>
 
       {/* Dernières visites */}
       <div
-        className={`absolute top-full left-0 w-full transition-all duration-300 origin-top ${activeMenu === "visites" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2 pointer-events-none"}`}
-        onMouseEnter={() => setActiveMenu("visites")}
+        className={`pointer-events-none absolute top-full left-0 w-full transition-all duration-300 origin-top ${activeMenu === "visites" ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-95 -translate-y-2"}`}
       >
-        <div className="mx-auto w-full max-w-[var(--container)] px-6 pt-2 sm:px-8">
+        <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
+          <div
+            className={`w-full pt-2 ${activeMenu === "visites" ? "pointer-events-auto" : ""}`}
+            onMouseEnter={() => setActiveMenu("visites")}
+          >
           <div className="w-full rounded-2xl border border-gray-100 bg-white shadow-2xl">
             <div className="px-8 py-10">
           <div className="grid grid-cols-3 items-stretch gap-8">
@@ -739,10 +811,14 @@ export default function Navbar({
 
                   {/* Bouton play centré */}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 text-[#FF6600] shadow-lg transition-transform group-hover:scale-110">
+                    <div
+                      className="relative flex h-14 w-14 items-center justify-center rounded-full text-white shadow-[0_2px_8px_-3px_rgba(10,10,10,0.10),0_22px_48px_-18px_rgba(10,10,10,0.14)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_36px_-4px_rgba(255,102,0,0.55)] motion-reduce:transition-none"
+                      style={BRAND_DIAGONAL}
+                    >
                       <svg className="ml-0.5 h-7 w-7 fill-current" viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M8 5v14l11-7z" />
                       </svg>
+                      <div className="pointer-events-none absolute inset-0 rounded-full bg-white/0 transition-colors duration-300 group-hover:bg-white/10" />
                     </div>
                   </div>
 
@@ -751,8 +827,13 @@ export default function Navbar({
                     <h4 className="font-heading text-lg font-bold leading-tight text-white">
                       {coupDeCoeur.title}
                     </h4>
+                    {coupDeCoeur.description && (
+                      <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-white/85">
+                        {coupDeCoeur.description}
+                      </p>
+                    )}
                     {[coupDeCoeur.client, coupDeCoeur.location].filter(Boolean).length > 0 && (
-                      <p className="mt-1 text-sm text-white/80">
+                      <p className="mt-1.5 text-sm text-white/70">
                         {[coupDeCoeur.client, coupDeCoeur.location].filter(Boolean).join(" · ")}
                       </p>
                     )}
@@ -785,6 +866,7 @@ export default function Navbar({
             </a>
           </div>
             </div>
+          </div>
           </div>
         </div>
       </div>

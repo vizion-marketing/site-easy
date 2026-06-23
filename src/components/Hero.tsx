@@ -76,6 +76,7 @@ export default function Hero() {
                       4,9/5
                     </span>
                     <span className="text-white/70 text-[10px] font-bold uppercase tracking-widest mt-1">Satisfaction client</span>
+                    <span className="text-white/45 text-[10px] tracking-tight mt-0.5">Sur + de 100 avis clients</span>
                   </div>
                   <div className="hidden sm:block h-12 w-px bg-white/25" />
                   <div className="flex flex-col gap-2.5">

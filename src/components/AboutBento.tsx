@@ -11,10 +11,9 @@ type Props = {
   testimonialQuote?: string;
   testimonialAuthor?: string;
   testimonialRole?: string;
-  testimonialAvatar?: string;
+  testimonialAvatars?: string[];
   tallImagePath?: string;
   /* Texte superposé sur la tuile image verticale (droite). */
-  tallEyebrow?: string;
   tallTitle?: string;
   tallDescription?: string;
   networkTitle?: string;
@@ -26,6 +25,8 @@ type Props = {
   /* Texte de l'infobulle du « i » informationnel à côté du titre. */
   easyGroupInfo?: string;
   easyGroupDescription?: string;
+  /* Suffixes des marques sœurs « easy » affichées en grille de logos (wordmarks). */
+  easyBrands?: string[];
 };
 
 /* Pastille numérotée (01–04) — badge « outline » : contour fin + chiffre zéro-paddé.
@@ -80,21 +81,21 @@ const TILE_SHADOW =
    props optionnelles (valeurs par défaut FR), branchables à Sanity plus tard. */
 export default function AboutBento({
   eyebrow = "Qui sommes-nous",
-  titlePart1 = "Le premier ",
-  titleHighlight = "réseau de franchise",
-  titlePart2 = " dédié à la visite virtuelle en France",
-  intro = "Nous combinons la force d'un grand groupe et l'agilité d'un réseau local pour offrir des visites virtuelles 360° d'une qualité homogène, partout en France.",
+  titlePart1 = "easyVirtual.tours, le ",
+  titleHighlight = "leader français",
+  titlePart2 = " de la visite virtuelle",
+  intro = "Derrière chaque visite virtuelle, trois forces réunies : l'appui d'un grand groupe, un réseau d'agences de proximité partout en France, et la technologie de capture 3D la plus avancée du marché.",
   imagePath = "/easyfamily.png",
-  testimonialQuote = "We built the easy family on one idea: make *premium* accessible.",
-  testimonialAuthor = "Sir Stelios Haji-Ioannou",
-  testimonialRole = "Founder of easyJet & the easy family",
-  testimonialAvatar = "/stelios.png",
+  testimonialQuote = "Nous avons rejoint le groupe *easy* en 2023 avec une conviction : rendre, nous aussi, une technologie de pointe accessible au plus grand nombre comme Stelios l'a fait avec l'aviation et easyJet avant nous.",
+  testimonialAuthor = "Clément Carrère & Léo Bouyssou",
+  testimonialRole = "Cofondateurs d'easyVirtual.tours",
+  // Portraits placeholder — à remplacer par les vrais portraits des cofondateurs (/public).
+  testimonialAvatars = ["https://i.pravatar.cc/96?img=15", "https://i.pravatar.cc/96?img=33"],
   tallImagePath = "/matterportpro3.png",
-  tallEyebrow = "une technologie de pointe",
-  tallTitle = "Partenaire Matterport",
+  tallTitle = "Nous distribuons la technologie Matterport",
   tallDescription =
-    "Nous capturons vos espaces avec Matterport, la technologie de jumeau numérique 3D leader du marché — pour des visites virtuelles d'une précision et d'un réalisme inégalés.",
-  networkTitle = "+30 agences partout en France",
+    "Matterport, c'est la pointe de la technologie de capture 3D : un jumeau numérique d'un réalisme et d'une précision inégalés, devenu la référence mondiale de la visite virtuelle.",
+  networkTitle = "Nous avons +30 agences dans toute la France",
   networkDescription = "easyvirtual.tours est le premier réseau de franchise français entièrement dédié à la visite virtuelle 360°. Des franchisés locaux partout en France, un savoir-faire commun, une qualité homogène.",
   // Photos placeholder — à remplacer par les vrais portraits de franchisés (/public).
   franchiseeAvatars = [
@@ -104,9 +105,10 @@ export default function AboutBento({
     "https://i.pravatar.cc/96?img=47",
     "https://i.pravatar.cc/96?img=68",
   ],
-  easyGroupTitle = "Une marque du groupe *easy*",
+  easyGroupTitle = "Nous sommes une marque du groupe *easy*",
   easyGroupInfo = "easy (easyGroup) est l'écosystème de marques fondé par Sir Stelios Haji-Ioannou — easyJet, easyHotel, easyGym, easyCar… — réunies par une même promesse : rendre le premium simple et accessible à tous.",
-  easyGroupDescription = "Nous faisons partie de la easy family, l'écosystème de marques fondé par easyJet (easyHotel, easyGym, easyCar…). La même promesse : rendre le premium simple et accessible à tous.",
+  easyGroupDescription = "Non, nous ne sommes pas des imposteurs ! Nous faisons bien partie de la easy family, l'écosystème de marques fondé par Sir Stelios Haji-Ioannou en 1998.",
+  easyBrands = ["Jet", "Gym", "Voyage", "Pet", "Hotel", "Car"],
 }: Props) {
   // Piste du marquee : on triple la liste pour remplir la largeur du bloc, puis le
   // rendu la duplique (translateX -50%) pour une boucle continue sans couture.
@@ -148,15 +150,8 @@ export default function AboutBento({
             {/* Dégradé noir → transparent, du bas vers le haut */}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-transparent" />
 
-            {/* Témoignage de Stelios (anglais) */}
+            {/* Témoignage des cofondateurs */}
             <figure className="absolute inset-x-0 bottom-0 p-8 text-white md:p-10">
-              {/* Eyebrow numéroté « 01 · THE EASY FAMILY » */}
-              <span className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-[#FF6600]/60 py-1.5 pl-2.5 pr-3.5 text-[10px] font-bold uppercase tracking-[0.18em]">
-                <span className="text-[#FF6600]">01</span>
-                <span className="h-3 w-px bg-white/30" aria-hidden="true" />
-                <span className="text-white/90">the easy family</span>
-              </span>
-
               {/* Guillemet décoratif */}
               <svg viewBox="0 0 32 32" fill="currentColor" className="mb-3 h-8 w-8 text-[#FF6600]" aria-hidden="true">
                 <path d="M10 8C6.7 8 4 10.7 4 14s2.7 6 6 6c.34 0 .67-.03 1-.1-.5 2.3-2.4 4-4.7 4.1-.7.03-1.3.6-1.3 1.3 0 .73.6 1.32 1.34 1.3C12.27 26.5 16 22.6 16 18v-4c0-3.3-2.7-6-6-6Zm12 0c-3.3 0-6 2.7-6 6s2.7 6 6 6c.34 0 .67-.03 1-.1-.5 2.3-2.4 4-4.7 4.1-.7.03-1.3.6-1.3 1.3 0 .73.6 1.32 1.34 1.3C24.27 26.5 28 22.6 28 18v-4c0-3.3-2.7-6-6-6Z" />
@@ -167,13 +162,18 @@ export default function AboutBento({
               </blockquote>
 
               <figcaption className="mt-5 flex items-center gap-3">
-                {testimonialAvatar && (
-                  <img
-                    src={testimonialAvatar}
-                    alt={testimonialAuthor}
-                    loading="lazy"
-                    className="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-white/80"
-                  />
+                {testimonialAvatars.length > 0 && (
+                  <div className="flex -space-x-3">
+                    {testimonialAvatars.map((src) => (
+                      <img
+                        key={src}
+                        src={src}
+                        alt=""
+                        loading="lazy"
+                        className="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-white/80"
+                      />
+                    ))}
+                  </div>
                 )}
                 <div>
                   <p className="text-sm font-semibold tracking-tight">{testimonialAuthor}</p>
@@ -217,7 +217,7 @@ export default function AboutBento({
             </svg>
 
             <div className="relative z-10 flex h-full flex-col">
-              <StepBadge n={2} variant="light" className="mb-5" />
+              <StepBadge n={1} variant="light" className="mb-5" />
 
               {/* Titre + « i » informationnel collé à « easy » (groupe nowrap → ils
                  passent ensemble à la ligne si besoin, l'icône n'est jamais orpheline). */}
@@ -258,6 +258,25 @@ export default function AboutBento({
               </h3>
               <p className="mb-6 leading-relaxed text-white/85">{easyGroupDescription}</p>
 
+              {/* Grille des marques sœurs de la easy family (wordmarks `font-cooper`) */}
+              <div className="mb-8">
+                <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
+                  Les autres marques du groupe
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  {easyBrands.map((suffix) => (
+                    <div
+                      key={suffix}
+                      className="group/brand flex items-center justify-center rounded-xl border border-white/10 bg-white/5 py-2.5 backdrop-blur-sm transition-all duration-300 hover:border-white/25 hover:bg-white/15"
+                    >
+                      <span className="pointer-events-none font-cooper text-[13px] tracking-tight text-white transition-transform duration-300 group-hover/brand:scale-105">
+                        easy<span className="opacity-80">{suffix}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Lien « En savoir plus » (texte, sur tuile orange) */}
               <a
                 href="#a-propos"
@@ -273,10 +292,10 @@ export default function AboutBento({
           </div>
 
           {/* TUILE 3 — RÉSEAU FRANCHISE */}
-          <div className={`relative flex flex-col overflow-hidden rounded-2xl bg-[#fdfaf6] transition-shadow duration-300 ${TILE_SHADOW} lg:col-start-6 lg:col-span-4 lg:row-start-2`}>
+          <div className={`relative flex flex-col overflow-hidden rounded-2xl bg-white transition-shadow duration-300 ${TILE_SHADOW} lg:col-start-6 lg:col-span-4 lg:row-start-2`}>
             {/* Contenu paddé */}
             <div className="flex flex-1 flex-col p-8 md:p-10">
-              <StepBadge n={3} variant="orange" className="mb-6" />
+              <StepBadge n={2} variant="orange" className="mb-6" />
               <h3 className="font-heading text-2xl text-[#0a0a0a]">{networkTitle}</h3>
               <p className="mt-4 leading-relaxed text-gray-600">{networkDescription}</p>
 
@@ -296,8 +315,8 @@ export default function AboutBento({
             {/* MARQUEE pleine largeur — têtes de franchisés (photos rondes) qui défilent */}
             <div className="relative overflow-hidden border-t border-gray-200/70 py-5">
               {/* Fondus latéraux (entrée/sortie douce) */}
-              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-14 bg-gradient-to-r from-[#fdfaf6] to-transparent" aria-hidden="true" />
-              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-14 bg-gradient-to-l from-[#fdfaf6] to-transparent" aria-hidden="true" />
+              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-14 bg-gradient-to-r from-white to-transparent" aria-hidden="true" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-14 bg-gradient-to-l from-white to-transparent" aria-hidden="true" />
               <ul className="flex w-max animate-[bento-marquee_28s_linear_infinite] motion-reduce:animate-none">
                 {[...marqueeAvatars, ...marqueeAvatars].map((src, i) => (
                   <li key={i} className="mx-1.5 shrink-0">
@@ -321,12 +340,20 @@ export default function AboutBento({
               className="h-full w-full object-cover transition-transform duration-700 ease-in-out motion-safe:group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-transparent" />
-            <StepBadge n={4} variant="light" className="absolute left-6 top-6 z-10" />
+            <StepBadge n={3} variant="light" className="absolute left-6 top-6 z-10" />
             <div className="absolute bottom-0 left-0 p-6 text-white md:p-8">
-              <span className="mb-2 inline-block text-[10px] font-bold uppercase tracking-widest text-white/80">
-                {tallEyebrow}
-              </span>
-              <p className="font-heading text-lg font-light tracking-tight">
+              {/* Logo Matterport — lockup inline (cube + wordmark). Remplacer par le
+                 SVG officiel si une licence d'usage de la marque est fournie. */}
+              <div className="mb-3 flex items-center gap-2 text-white">
+                <svg viewBox="0 0 20 20" className="h-6 w-auto fill-current" aria-hidden="true">
+                  <path d="M10 0L18.66 5V15L10 20L1.34 15V5L10 0Z" fillOpacity="0.2" />
+                  <path d="M10 0L1.34 5L10 10L18.66 5L10 0Z" />
+                  <path d="M1.34 5V15L10 20V10L1.34 5Z" fillOpacity="0.7" />
+                  <path d="M18.66 5V15L10 20V10L18.66 5Z" fillOpacity="0.5" />
+                </svg>
+                <span className="font-heading text-lg font-medium tracking-tight">matterport</span>
+              </div>
+              <p className="font-heading text-2xl leading-snug tracking-tight">
                 {tallTitle}
               </p>
 

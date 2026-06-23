@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import Eyebrow from "./Eyebrow";
 
 type SpecCard = { title: string; description: string };
@@ -29,38 +28,19 @@ function Sparkle({ className }: { className?: string }) {
   );
 }
 
-/* Icônes des 4 cartes (SVG inline, stroke currentColor) — mappées par index.
-   Hors data : la prop `cards` reste de la donnée pure. */
-const CARD_ICONS: ReactNode[] = [
-  // 1. Une véritable notion de conseil — bulle de dialogue / accompagnement
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden="true">
-    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" />
-    <path d="M8.5 11h.01" />
-    <path d="M12 11h.01" />
-    <path d="M15.5 11h.01" />
-  </svg>,
-  // 2. Livraison en 48h — horloge
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden="true">
-    <circle cx="12" cy="12" r="9" />
-    <polyline points="12 7 12 12 15.5 14" />
-    <path d="M12 2v1.5" />
-    <path d="M21.5 9 20 9.4" />
-  </svg>,
-  // 3. Présence partout en France — point de carte
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden="true">
-    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-    <circle cx="12" cy="10" r="3" />
-    <path d="m16 2-1.5 1.6" />
-    <path d="m8 2 1.5 1.6" />
-  </svg>,
-  // 4. La technologie la plus avancée du marché (Matterport) — caméra / capture 3D
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden="true">
-    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-    <circle cx="12" cy="13" r="3" />
-    <path d="M12 10a4 4 0 0 0-4 4" />
-    <path d="M16 10a4 4 0 0 1-4 4" />
-  </svg>,
-];
+/* Pastille numérotée (01–04) — même badge « outline » que le bento « Qui sommes-nous »
+   (AboutBento, variante orange sur fond clair) : contour fin orange + chiffre zéro-paddé
+   en `font-heading`. Posée en tête de carte à la place des icônes. */
+function StepBadge({ n, className = "" }: { n: number; className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#FF6600]/45 font-heading text-[13px] font-bold tracking-wide text-[#FF6600] ${className}`}
+    >
+      {String(n).padStart(2, "0")}
+    </span>
+  );
+}
 
 /* Section « Les spécificités de la visite virtuelle easyvirtual.tours » — fond blanc,
    conteneurisée (1440px). Coupée en deux : moitié orange + photo (gauche) ; titre + 4
@@ -141,11 +121,12 @@ export default function Specificites({
               {cards.map((card, idx) => (
                 <div
                   key={card.title}
-                  className="group/card rounded-2xl bg-[#fdfaf6] p-6 shadow-[0_2px_8px_-3px_rgba(10,10,10,0.10),0_22px_48px_-18px_rgba(10,10,10,0.14)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_12px_-3px_rgba(10,10,10,0.14),0_32px_64px_-20px_rgba(10,10,10,0.20)] motion-reduce:transition-none md:p-7"
+                  className="group/card rounded-2xl bg-white p-6 shadow-[0_2px_8px_-3px_rgba(10,10,10,0.10),0_22px_48px_-18px_rgba(10,10,10,0.14)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_12px_-3px_rgba(10,10,10,0.14),0_32px_64px_-20px_rgba(10,10,10,0.20)] motion-reduce:transition-none md:p-7"
                 >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#fff4ec] text-[#FF6600] transition-transform duration-300 group-hover/card:scale-110 motion-reduce:transition-none">
-                    {CARD_ICONS[idx] ?? CARD_ICONS[0]}
-                  </div>
+                  <StepBadge
+                    n={idx + 1}
+                    className="transition-transform duration-300 group-hover/card:scale-110 motion-reduce:transition-none"
+                  />
                   <h3 className="mt-5 font-heading text-lg text-[#0a0a0a] md:text-xl">{card.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-gray-600">{card.description}</p>
                 </div>

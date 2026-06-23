@@ -271,17 +271,6 @@ export default function ContactVideoDock({
               {/* Voile bas pour la lisibilité */}
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
 
-              {/* Pastille « en direct » */}
-              <div className="pointer-events-none absolute left-3 top-3">
-                <div className="flex items-center gap-2 rounded-full border border-white/20 bg-black/30 px-2 py-1 text-[10px] font-bold text-white backdrop-blur-md">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-[#FF6600] opacity-75 motion-safe:animate-ping" />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#FF6600]" />
-                  </span>
-                  360° · VIDÉO
-                </div>
-              </div>
-
               {/* Légende bas */}
               <div className="pointer-events-none absolute inset-x-3 bottom-3 flex items-center gap-2 text-white">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FF6600] shadow-lg">
@@ -353,10 +342,10 @@ export default function ContactVideoDock({
                   </button>
                 </div>
                 <h3 className="mb-2 font-heading text-2xl font-bold leading-tight text-[#0a0a0a]">
-                  Parlons de votre projet
+                  Plus de 100 entreprises nous font déjà confiance, en France et en Europe.
                 </h3>
                 <p className="text-sm leading-relaxed text-gray-500">
-                  Notre équipe vous accompagne pour créer votre visite virtuelle sur-mesure.
+                  Serez-vous les prochains ?
                 </p>
               </div>
 

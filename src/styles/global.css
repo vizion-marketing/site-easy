@@ -55,6 +55,18 @@
   }
 }
 
+/* Marquee VERTICAL continu (mur de témoignages — 3 colonnes en sens alternés).
+   Chaque colonne contient 2 copies identiques empilées ; -50% = une copie → boucle
+   sans couture. Le sens descendant s'obtient avec `animation-direction: reverse`. */
+@keyframes wall-scroll {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+
 :root {
   --background: #ffffff;
   --foreground: #0a0a0a;
@@ -328,6 +340,17 @@ body {
 }
 .ev-tour-scroll::-webkit-scrollbar-thumb:hover {
   background: #ff8533;
+}
+
+/* Scroll-snap doux de la section « visite virtuelle » (VirtualTourPilot) :
+   l'écran-titre orange « Attention… » se cale plein écran à l'arrivée. Le type de
+   snap (proximity) est porté par le scroller racine <html> (classes `snap-y
+   snap-proximity` dans BaseLayout) ; la <section id="visite-virtuelle"> porte
+   `snap-start`. On neutralise le snap si l'utilisateur préfère moins d'animations. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-snap-type: none;
+  }
 }
 
 /* Halos de fond « vivants » — dérive très lente des blobs blancs flous de
