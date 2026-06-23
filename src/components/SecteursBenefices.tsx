@@ -133,9 +133,9 @@ const DEFAULT_SECTORS: Sector[] = [
    (défauts FR, branchables à Sanity plus tard). */
 export default function SecteursBenefices({
   eyebrow = "Secteurs d'activité",
-  titlePart1 = "Les secteurs qui ",
-  titleHighlight = "gagnent le plus",
-  titlePart2 = " à passer en 360°",
+  titlePart1 = "La visite virtuelle : ",
+  titleHighlight = "un outil innovant",
+  titlePart2 = " pour de nombreux secteurs d'activités",
   intro = "Accélérer une vente, fiabiliser un relevé technique ou former vos équipes : la visite virtuelle s'adapte à chaque métier pour créer de la valeur immédiate.",
   sectors = DEFAULT_SECTORS,
   ctaLabel = "Discutons de votre projet",

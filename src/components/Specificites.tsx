@@ -28,19 +28,30 @@ function Sparkle({ className }: { className?: string }) {
   );
 }
 
-/* Pastille numérotée (01–04) — même badge « outline » que le bento « Qui sommes-nous »
-   (AboutBento, variante orange sur fond clair) : contour fin orange + chiffre zéro-paddé
-   en `font-heading`. Posée en tête de carte à la place des icônes. */
-function StepBadge({ n, className = "" }: { n: number; className?: string }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#FF6600]/45 font-heading text-[13px] font-bold tracking-wide text-[#FF6600] ${className}`}
-    >
-      {String(n).padStart(2, "0")}
-    </span>
-  );
-}
+/* Dégradé mesh orange de marque — pastille d'icône identique aux cartes de cas d'usages /
+   fonctionnalités (cf. MESH_BRAND dans UseCases / VirtualTourPilot / Navbar). */
+const MESH_BRAND = {
+  backgroundColor: "#ff6600",
+  backgroundImage:
+    "radial-gradient(at 15% 18%, #ff8040 0px, transparent 50%)," +
+    "radial-gradient(at 85% 12%, #ffc7a0 0px, transparent 42%)," +
+    "radial-gradient(at 92% 60%, #ff7c2a 0px, transparent 46%)," +
+    "radial-gradient(at 12% 92%, #ee6000 0px, transparent 52%)," +
+    "radial-gradient(at 50% 50%, #ff741c 0px, transparent 55%)",
+};
+
+/* Icônes blanches des 4 cartes (SVG inline, même design que les pastilles de cas d'usages) :
+   conseil · livraison 48h · présence France · technologie. Même ordre que `cards`. */
+const CARD_ICONS = [
+  // Conseil — ampoule (idée / accompagnement)
+  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 18h6" /><path d="M10 22h4" /><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 1 0 6 8c0 1 .23 2.23 1.5 3.5.76.76 1.23 1.52 1.41 2.5" /></svg>,
+  // Livraison 48h — horloge
+  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 14" /></svg>,
+  // Présence France — repère carte
+  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>,
+  // Technologie — jumeau numérique 3D (cube)
+  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m21 16-9 5-9-5V8l9-5 9 5v8Z" /><path d="m3 8 9 5 9-5" /><path d="M12 13v8" /></svg>,
+];
 
 /* Section « Les spécificités de la visite virtuelle easyvirtual.tours » — fond blanc,
    conteneurisée (1440px). Coupée en deux : moitié orange + photo (gauche) ; titre + 4
@@ -121,13 +132,15 @@ export default function Specificites({
               {cards.map((card, idx) => (
                 <div
                   key={card.title}
-                  className="group/card rounded-2xl bg-white p-6 shadow-[0_2px_8px_-3px_rgba(10,10,10,0.10),0_22px_48px_-18px_rgba(10,10,10,0.14)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_4px_12px_-3px_rgba(10,10,10,0.14),0_32px_64px_-20px_rgba(10,10,10,0.20)] motion-reduce:transition-none md:p-7"
+                  className="group rounded-2xl border border-transparent bg-white p-6 shadow-[0_2px_8px_-3px_rgba(10,10,10,0.10),0_22px_48px_-18px_rgba(10,10,10,0.14)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#ff8533]/60 hover:shadow-[0_22px_50px_-16px_rgba(255,102,0,0.35)] motion-reduce:transition-none motion-reduce:hover:transform-none md:p-7"
                 >
-                  <StepBadge
-                    n={idx + 1}
-                    className="transition-transform duration-300 group-hover/card:scale-110 motion-reduce:transition-none"
-                  />
-                  <h3 className="mt-5 font-heading text-lg text-[#0a0a0a] md:text-xl">{card.title}</h3>
+                  <span
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:transform-none"
+                    style={MESH_BRAND}
+                  >
+                    {CARD_ICONS[idx] ?? CARD_ICONS[0]}
+                  </span>
+                  <h3 className="mt-5 font-heading text-[15px] font-bold leading-tight text-[#0a0a0a] transition-colors duration-300 group-hover:text-[#FF6600]">{card.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-gray-600">{card.description}</p>
                 </div>
               ))}

@@ -292,27 +292,19 @@ function LogosRow({ logos, className = "" }: { logos: { name: string; node: Reac
   );
 }
 
-/* Marquee de portraits de franchisés — réutilise le keyframe `bento-marquee`.
-   1 rangée sur mobile, 2 rangées (sens opposés) sur desktop ; remplace l'ours à l'étape « On se déplace ». */
-function FranchiseeMarquee({ images }: { images: string[] }) {
-  const MIN = 5;
-  const base = images.length >= MIN ? images : Array.from({ length: Math.ceil(MIN / Math.max(images.length, 1)) }, () => images).flat();
-  const rev = [...base].reverse();
-  const rowA = [...base, ...base];
-  const rowB = [...rev, ...rev];
-  const photo = "h-32 w-32 overflow-hidden rounded-[1.75rem] bg-white/10 shadow-[0_18px_40px_-12px_rgba(10,10,10,0.45)] ring-4 ring-white/25 sm:h-40 sm:w-40 lg:h-52 lg:w-52";
+/* Bandeau discret de franchisés — avatars empilés (face pile) + libellé, placé sous le texte. */
+function FranchiseePile({ images, className = "" }: { images: string[]; className?: string }) {
+  const shown = images.slice(0, 5);
   return (
-    <div className="absolute inset-x-0 bottom-6 z-[1] flex flex-col gap-4 overflow-hidden lg:inset-y-0 lg:bottom-auto lg:left-auto lg:right-0 lg:w-[60%] lg:justify-center lg:gap-6" aria-hidden="true">
-      <ul className="flex w-max gap-4 animate-[bento-marquee_40s_linear_infinite] hover:[animation-play-state:paused] motion-reduce:animate-none lg:gap-6">
-        {rowA.map((src, i) => (
-          <li key={`a-${i}`} className="list-none"><div className={photo}><img src={src} alt="" loading="lazy" className="h-full w-full object-cover" /></div></li>
+    <div className={`flex items-center gap-3 ${className}`}>
+      <div className="flex -space-x-3">
+        {shown.map((src, i) => (
+          <div key={i} className="h-10 w-10 overflow-hidden rounded-full bg-white/10 shadow-md ring-2 ring-white/80">
+            <img src={src} alt="" loading="lazy" className="h-full w-full object-cover" />
+          </div>
         ))}
-      </ul>
-      <ul className="hidden w-max gap-4 animate-[bento-marquee_52s_linear_infinite] hover:[animation-play-state:paused] motion-reduce:animate-none lg:flex lg:gap-6" style={{ animationDirection: "reverse" }}>
-        {rowB.map((src, i) => (
-          <li key={`b-${i}`} className="list-none"><div className={photo}><img src={src} alt="" loading="lazy" className="h-full w-full object-cover" /></div></li>
-        ))}
-      </ul>
+      </div>
+      <span className="text-sm font-medium leading-tight text-white/85">Un représentant local<br className="hidden sm:block" /> près de chez vous</span>
     </div>
   );
 }
@@ -373,21 +365,17 @@ function SlideStage({ paths, activeKey, onTabChange, path, progress, holdProgres
             <div key={step.id} className="flex h-full w-screen shrink-0 items-center">
               <div className="relative mx-auto h-full w-full max-w-5xl px-6 sm:px-8">
 
-                {step.gallery && step.gallery.length > 0 ? (
-                  <FranchiseeMarquee images={step.gallery} />
-                ) : (
-                  /* OURS — agrandi, collé tout en bas (touche le bord bas), à droite sur desktop */
-                  <div className="absolute inset-x-6 bottom-0 z-[1] flex items-end justify-center sm:inset-x-8 lg:inset-y-0 lg:left-auto lg:right-6 lg:w-[58%] lg:justify-end">
-                    {/* Cercles concentriques + sparkle (centrés sur l'ours) */}
-                    <div className="pointer-events-none absolute bottom-[4%] left-1/2 aspect-square w-[min(560px,70vh)] -translate-x-1/2" aria-hidden="true">
-                      <div className="absolute inset-0 scale-[0.6] rounded-full border border-white/10" />
-                      <div className="absolute inset-0 scale-[0.8] rounded-full border border-white/15" />
-                      <div className="absolute inset-0 scale-100 rounded-full border border-white/20" />
-                      <svg className="absolute right-[12%] top-[16%] h-8 w-8 text-white/30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 14 10 22 12 14 14 12 22 10 14 2 12 10 10Z" /></svg>
-                    </div>
-                    <img src={step.image} alt={step.title} className="relative z-10 max-h-[54vh] w-auto max-w-full object-contain object-bottom drop-shadow-[0_24px_48px_rgba(10,10,10,0.30)] lg:h-full lg:max-h-none" loading="lazy" />
+                {/* OURS / PHOTO — agrandi, collé tout en bas (touche le bord bas), à droite sur desktop */}
+                <div className="absolute inset-x-6 bottom-0 z-[1] flex items-end justify-center sm:inset-x-8 lg:inset-y-0 lg:left-auto lg:right-6 lg:w-[58%] lg:justify-end">
+                  {/* Cercles concentriques + sparkle (centrés sur l'ours) */}
+                  <div className="pointer-events-none absolute bottom-[4%] left-1/2 aspect-square w-[min(560px,70vh)] -translate-x-1/2" aria-hidden="true">
+                    <div className="absolute inset-0 scale-[0.6] rounded-full border border-white/10" />
+                    <div className="absolute inset-0 scale-[0.8] rounded-full border border-white/15" />
+                    <div className="absolute inset-0 scale-100 rounded-full border border-white/20" />
+                    <svg className="absolute right-[12%] top-[16%] h-8 w-8 text-white/30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 14 10 22 12 14 14 12 22 10 14 2 12 10 10Z" /></svg>
                   </div>
-                )}
+                  <img src={step.image} alt={step.title} className="relative z-10 max-h-[54vh] w-auto max-w-full object-contain object-bottom drop-shadow-[0_24px_48px_rgba(10,10,10,0.30)] lg:h-full lg:max-h-none" loading="lazy" />
+                </div>
 
                 {/* Gros chiffre fantôme en fond (hauteur max), derrière le texte */}
                 <span className="pointer-events-none absolute left-[56%] top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 select-none font-heading font-bold leading-none text-white/10 text-[46vh] sm:text-[62vh] lg:text-[82vh]" aria-hidden="true">
@@ -405,6 +393,7 @@ function SlideStage({ paths, activeKey, onTabChange, path, progress, holdProgres
                   <h3 className="font-heading text-4xl font-bold leading-[1.03] tracking-tight text-white md:text-5xl lg:text-6xl">{step.title}</h3>
                   <p className="max-w-md text-lg leading-relaxed text-white/85 lg:text-xl">{step.description}</p>
                   {step.logos && step.logos.length > 0 && <LogosRow logos={step.logos} className="mt-1" />}
+                  {step.gallery && step.gallery.length > 0 && <FranchiseePile images={step.gallery} className="mt-1" />}
                   {step.actions && step.actions.length > 0 && <StepActions actions={step.actions} className="mt-1" />}
                 </div>
 
@@ -532,22 +521,13 @@ export default function ProcessTimeline({
                   <h3 className="mt-5 font-heading text-2xl font-bold leading-tight tracking-tight text-white md:text-3xl">{step.id} · {step.title}</h3>
                   <p className="mt-4 max-w-md text-lg leading-relaxed text-white/85">{step.description}</p>
                   {step.logos && step.logos.length > 0 && <LogosRow logos={step.logos} className="mt-6" />}
+                  {step.gallery && step.gallery.length > 0 && <FranchiseePile images={step.gallery} className="mt-6" />}
                   {step.actions && step.actions.length > 0 && <StepActions actions={step.actions} className="mt-6" />}
                 </div>
                 <div className={`flex justify-center ${idx % 2 === 1 ? "md:order-1" : ""}`}>
-                  {step.gallery && step.gallery.length > 0 ? (
-                    <div className="grid w-full max-w-[360px] grid-cols-3 gap-3">
-                      {step.gallery.slice(0, 6).map((src, i) => (
-                        <div key={i} className="aspect-square overflow-hidden rounded-2xl ring-2 ring-white/25">
-                          <img src={src} alt="" className="h-full w-full object-cover" loading="lazy" />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="relative aspect-[4/5] w-full max-w-[320px] overflow-hidden rounded-2xl bg-zinc-100 shadow-[0_2px_8px_-3px_rgba(10,10,10,0.20),0_22px_48px_-18px_rgba(10,10,10,0.28)]">
-                      <img src={step.image} alt={step.title} className="h-full w-full object-cover" loading="lazy" />
-                    </div>
-                  )}
+                  <div className="relative aspect-[4/5] w-full max-w-[320px] overflow-hidden rounded-2xl bg-zinc-100 shadow-[0_2px_8px_-3px_rgba(10,10,10,0.20),0_22px_48px_-18px_rgba(10,10,10,0.28)]">
+                    <img src={step.image} alt={step.title} className="h-full w-full object-cover" loading="lazy" />
+                  </div>
                 </div>
               </div>
             ))}
