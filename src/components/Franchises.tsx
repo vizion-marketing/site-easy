@@ -236,7 +236,7 @@ export default function Franchises({
   ctaLabel = "Devenir franchisé",
   ctaHref = "#contact",
   joinHint = "Vous voulez vous aussi rejoindre l'aventure ? Des zones sont encore disponibles.",
-  defaultImageUrl = "/didier.png",
+  defaultImageUrl = "/didier.webp",
   defaultName,
   defaultRole,
 }: Props) {

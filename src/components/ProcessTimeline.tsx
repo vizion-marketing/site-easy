@@ -143,7 +143,7 @@ const SINGLE_PATH: ProcessPath = {
       id: "01",
       title: "Vous nous contactez",
       description: "Un formulaire ou un appel, comme vous préférez. On vous recontacte sous 24 h pour comprendre votre projet.",
-      image: "/01easy.png",
+      image: "/01easy.webp",
       icon: ICONS.phone,
       actions: [
         { label: "Remplir le formulaire", href: "#contact", kind: "primary", icon: ICONS.form },
@@ -154,7 +154,7 @@ const SINGLE_PATH: ProcessPath = {
       id: "02",
       title: "On se rencontre",
       description: "En visio ou en physique, on échange pour établir votre cahier des charges et vous remettre un devis clair. Un second rendez-vous si le projet le demande.",
-      image: "/02easy.png",
+      image: "/02easy.webp",
       icon: ICONS.calendar,
       logos: [
         { name: "Microsoft Teams", node: <TeamsLogo /> },
@@ -165,7 +165,7 @@ const SINGLE_PATH: ProcessPath = {
       id: "03",
       title: "On se déplace chez vous",
       description: "Votre représentant local vient sur place et numérise votre lieu en 3D. Vous n'avez rien à préparer : on s'occupe de tout.",
-      image: "/03easy.png",
+      image: "/03easy.webp",
       icon: ICONS.camera,
       gallery: FRANCHISE_AVATARS,
     },
@@ -173,7 +173,7 @@ const SINGLE_PATH: ProcessPath = {
       id: "04",
       title: "On vous livre votre visite virtuelle en 48 h",
       description: "Elle est en ligne sous 48 h : un lien à partager, un embed pour votre site, l'hébergement inclus. On reste ensuite à vos côtés, avec conseils et accompagnement, pour en faire un véritable outil de performance.",
-      image: "/04easy.png",
+      image: "/04easy.webp",
       icon: ICONS.upload,
     },
   ],
@@ -186,10 +186,10 @@ const MULTI_PATH: ProcessPath = {
   tabSublabel: "Réseau, multi-sites, grands comptes",
   tabIcon: ICONS.map,
   steps: [
-    { id: "01", title: "Cadrage multi-sites", description: "On audite votre parc (agences, magasins, campus…) et on construit un plan de déploiement national.", image: "/easybear.png", icon: ICONS.list },
-    { id: "02", title: "Réseau de franchisés", description: "Nos franchisés certifiés couvrent toute la France : un interlocuteur local par zone, des standards identiques partout.", image: "/easybear.png", icon: ICONS.users },
-    { id: "03", title: "Captations coordonnées", description: "On planifie et réalise les captations en parallèle sur tous vos sites, avec un suivi centralisé.", image: "/easybear.png", icon: ICONS.calendar },
-    { id: "04", title: "Plateforme centralisée", description: "Toutes vos visites réunies dans un espace de marque unique, avec statistiques et gestion des accès.", image: "/easybear.png", icon: ICONS.monitor },
+    { id: "01", title: "Cadrage multi-sites", description: "On audite votre parc (agences, magasins, campus…) et on construit un plan de déploiement national.", image: "/easybear.webp", icon: ICONS.list },
+    { id: "02", title: "Réseau de franchisés", description: "Nos franchisés certifiés couvrent toute la France : un interlocuteur local par zone, des standards identiques partout.", image: "/easybear.webp", icon: ICONS.users },
+    { id: "03", title: "Captations coordonnées", description: "On planifie et réalise les captations en parallèle sur tous vos sites, avec un suivi centralisé.", image: "/easybear.webp", icon: ICONS.calendar },
+    { id: "04", title: "Plateforme centralisée", description: "Toutes vos visites réunies dans un espace de marque unique, avec statistiques et gestion des accès.", image: "/easybear.webp", icon: ICONS.monitor },
   ],
 };
 

@@ -89,13 +89,13 @@ export default function AboutBento({
   titleHighlight = "leader français",
   titlePart2 = " de la visite virtuelle",
   intro = "Derrière chaque visite virtuelle, quatre forces réunies : l'appui d'un grand groupe, un réseau d'agences de proximité partout en France, la technologie de capture 3D la plus avancée du marché, et un engagement éco-responsable assumé.",
-  imagePath = "/easyfamily.png",
+  imagePath = "/easyfamily.webp",
   testimonialQuote = "Nous avons rejoint le groupe *easy* en 2023 avec une conviction : rendre, nous aussi, une technologie de pointe accessible au plus grand nombre comme Stelios l'a fait avec l'aviation et easyJet avant nous.",
   testimonialAuthor = "Clément Carrère & Léo Bouyssou",
   testimonialRole = "Cofondateurs d'easyVirtual.tours",
   // Portraits placeholder — à remplacer par les vrais portraits des cofondateurs (/public).
   testimonialAvatars = ["https://i.pravatar.cc/96?img=15", "https://i.pravatar.cc/96?img=33"],
-  tallImagePath = "/matterportpro3.png",
+  tallImagePath = "/matterportpro3.webp",
   tallTitle = "Nous distribuons la technologie Matterport",
   tallDescription =
     "Matterport, c'est la pointe de la technologie de capture 3D : un jumeau numérique d'un réalisme et d'une précision inégalés, devenu la référence mondiale de la visite virtuelle.",

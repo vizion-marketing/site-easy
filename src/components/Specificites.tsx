@@ -62,7 +62,7 @@ export default function Specificites({
   titleHighlight = "easyvirtual.tours",
   titlePart2 = " ?",
   intro = "Bien plus qu'une simple captation : un véritable partenaire qui fait de votre visite virtuelle un outil commercial réellement performant.",
-  imagePath = "/didier.png",
+  imagePath = "/didier.webp",
   imageAlt = "Captation 3D professionnelle d'un espace avec la caméra 360° Matterport",
   panelEyebrow = "Standard premium",
   panelCaption = "Le jumeau numérique ultra-réaliste",

@@ -151,7 +151,7 @@ export default function VirtualTourPilot({
   titleHighlight = "visite virtuelle",
   titlePart2 = "…",
   intro = "Et pas n'importe laquelle : la véritable villa des créateurs Rachel & Emilien. Ouvrez chaque porte, explorez chaque recoin — et imaginez tout ce que la visite virtuelle rend possible.",
-  photo = "/easybear.png",
+  photo = "/easybear.webp",
   photoAlt = "La mascotte easy capturant un espace avec la caméra 360° Matterport Pro3",
   discoverLabel = "Découvrir la visite",
   discoverHref = "#la-visite",

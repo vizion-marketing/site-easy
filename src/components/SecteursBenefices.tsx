@@ -61,7 +61,7 @@ const DEFAULT_SECTORS: Sector[] = [
     title: "Immobilier",
     description:
       "Vendez et louez sans déplacement inutile : la visite 360° qualifie vos acheteurs et locataires à distance, 24h/24.",
-    image: "/appartement.png",
+    image: "/appartement.webp",
   },
   {
     id: "renovation",
@@ -70,7 +70,7 @@ const DEFAULT_SECTORS: Sector[] = [
     title: "Rénovation",
     description:
       "Avant / après et relevés précis : capturez l'état des lieux, générez des plans cotés et suivez l'avancée du chantier.",
-    image: "/chantier.png",
+    image: "/chantier.webp",
   },
   {
     id: "industrie",
@@ -79,7 +79,7 @@ const DEFAULT_SECTORS: Sector[] = [
     title: "Industrie",
     description:
       "Formez vos équipes en immersion et déroulez les parcours sécurité sur un site reproduit à l'identique, sans immobiliser la production.",
-    image: "/usine.png",
+    image: "/usine.webp",
   },
   {
     id: "tourisme",
@@ -87,7 +87,7 @@ const DEFAULT_SECTORS: Sector[] = [
     title: "Tourisme",
     description:
       "Offices de tourisme, sites et campings explorables en 360° pour booster les réservations.",
-    image: "/parc-attraction.png",
+    image: "/parc-attraction.webp",
   },
   {
     id: "culture",
@@ -95,7 +95,7 @@ const DEFAULT_SECTORS: Sector[] = [
     title: "Culture",
     description:
       "Démocratisez l'accès au patrimoine et aux expositions avec des parcours immersifs et enrichis.",
-    image: "/musee.png",
+    image: "/musee.webp",
   },
   {
     id: "hotellerie-restauration",
@@ -103,7 +103,7 @@ const DEFAULT_SECTORS: Sector[] = [
     title: "Hôtellerie & restauration",
     description:
       "Chambres, salles et terrasses mises en scène pour donner envie de réserver.",
-    image: "/hotel.png",
+    image: "/hotel.webp",
   },
   {
     id: "education",
@@ -111,7 +111,7 @@ const DEFAULT_SECTORS: Sector[] = [
     title: "Éducation",
     description:
       "Faites visiter vos campus et vos écoles aux futurs étudiants, où qu'ils soient.",
-    image: "/universite.png",
+    image: "/universite.webp",
   },
   {
     id: "commerces-services",
@@ -119,7 +119,7 @@ const DEFAULT_SECTORS: Sector[] = [
     title: "Commerces et services",
     description:
       "Transformez vos points de vente et agences en espaces explorables 24h/24.",
-    image: "/commerce.png",
+    image: "/commerce.webp",
   },
   {
     id: "sante-bien-etre",
@@ -127,7 +127,7 @@ const DEFAULT_SECTORS: Sector[] = [
     title: "Santé & bien-être",
     description:
       "Rassurez patients et clients en leur faisant découvrir les lieux en amont.",
-    image: "/hopital.png",
+    image: "/hopital.webp",
   },
 ];
 

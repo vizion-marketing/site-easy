@@ -54,8 +54,8 @@ export default function ContactBear({
   secondaryLabel = "Voir des réalisations",
   secondaryHref = "#visites",
   proofText = "+30 agences partout en France nous font confiance",
-  image = "/wink1.png",
-  winkImage = "/wink2.png",
+  image = "/wink1.webp",
+  winkImage = "/wink2.webp",
 }: Props) {
   const [winking, setWinking] = useState(false);
 

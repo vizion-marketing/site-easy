@@ -13,7 +13,7 @@ function telHref(phone: string): string | undefined {
 
 /** Slug stable d'un franchisé (= nom de fichier de sa photo, sans extension). */
 export const franchiseSlug = (f: Franchise): string =>
-  f.photo.replace(/^.*\/(.+)\.png$/, "$1");
+  f.photo.replace(/^.*\/(.+)\.(?:png|webp)$/, "$1");
 
 /** Secteur affichable : villes jointes (« Strasbourg · Colmar »), repli sur le brut puis « France ». */
 const displayZone = (f: Franchise): string =>

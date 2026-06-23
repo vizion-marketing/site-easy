@@ -359,19 +359,19 @@ export default function Navbar({
     {
       title: "Immobilier",
       desc: "Vendez et louez sans déplacement inutile : la visite 360° qualifie vos acheteurs à distance, 24h/24.",
-      imageUrl: "/appartement.png",
+      imageUrl: "/appartement.webp",
       href: "#secteur-immobilier",
     },
     {
       title: "Rénovation",
       desc: "Avant / après et relevés précis : capturez l'état des lieux et générez des plans cotés.",
-      imageUrl: "/chantier.png",
+      imageUrl: "/chantier.webp",
       href: "#secteur-renovation",
     },
     {
       title: "Industrie",
       desc: "Formez vos équipes en immersion sur un site reproduit à l'identique, sans immobiliser la production.",
-      imageUrl: "/usine.png",
+      imageUrl: "/usine.webp",
       href: "#secteur-industrie",
     },
   ];
@@ -398,7 +398,7 @@ export default function Navbar({
     title: "Visite virtuelle pilote",
     desc: "Explorez une visite 360° complète, exactement comme vos clients la vivront.",
     href: "#visite-pilote",
-    image: "/easy.png",
+    image: "/easy.webp",
   };
 
   // --- MÉGA-MENU "RESSOURCES" ---
@@ -430,7 +430,7 @@ export default function Navbar({
     excerpt: "Comment le 360° transforme la prospection et l'expérience client.",
     href: "#blog",
     allHref: "#blog",
-    image: "/easy.png",
+    image: "/easy.webp",
   };
 
   // Navbar : pill en verre liquide (réfraction Chromium via <LiquidGlass>),

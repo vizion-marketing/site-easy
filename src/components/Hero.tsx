@@ -10,7 +10,7 @@ export default function Hero() {
           <div className="absolute inset-0 z-0" aria-hidden="true">
             <video
               src="/7b3c0346-1542-48f2-bea3-c7fc0c29ce71.mp4"
-              poster="/testbg.png"
+              poster="/testbg.webp"
               autoPlay
               loop
               muted
