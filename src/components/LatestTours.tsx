@@ -168,7 +168,7 @@ export default function LatestTours({ tours, allHref = "#toutes-visites" }: Prop
     "transition-shadow duration-300 shadow-[0_2px_8px_-3px_rgba(10,10,10,0.10),0_22px_48px_-18px_rgba(10,10,10,0.14)] hover:shadow-[0_4px_12px_-3px_rgba(10,10,10,0.14),0_32px_64px_-20px_rgba(10,10,10,0.20)]";
 
   return (
-    <section id="visites" className="relative w-full overflow-hidden bg-white py-24 text-[#0a0a0a] md:py-32 lg:py-40">
+    <section id="visites" className="relative w-full overflow-hidden bg-white py-16 text-[#0a0a0a] md:py-24 lg:py-32">
       {/* Halo orange diffus (réchauffe le blanc) */}
       <div
         className="pointer-events-none absolute -top-40 right-0 h-[600px] w-[600px] rounded-full bg-[#FF6600]/10 blur-[130px]"

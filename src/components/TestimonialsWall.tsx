@@ -58,7 +58,7 @@ export default function TestimonialsWall({
   return (
     <section
       id="temoignages"
-      className="relative w-full overflow-hidden bg-[#f6f6f7] py-24 md:py-32 lg:py-40"
+      className="relative w-full overflow-hidden bg-[#f6f6f7] py-16 md:py-24 lg:py-32"
     >
       {/* LE MUR — 3 colonnes verticales défilant en continu (fond de la section) */}
       <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
@@ -105,7 +105,7 @@ export default function TestimonialsWall({
           aria-hidden="true"
           className="absolute inset-0 [background:radial-gradient(ellipse_58%_50%_at_center,rgba(246,246,247,0.85)_0%,rgba(246,246,247,0.45)_40%,rgba(246,246,247,0)_66%)]"
         />
-        <div className="relative max-w-2xl text-center">
+        <div className="relative max-w-2xl rounded-[2rem] bg-[#f6f6f7]/95 px-6 py-10 text-center shadow-[0_8px_40px_-12px_rgba(10,10,10,0.12)] backdrop-blur-md lg:rounded-none lg:bg-transparent lg:px-0 lg:py-0 lg:shadow-none lg:backdrop-blur-none">
           <div className="flex justify-center">
             <Eyebrow>{eyebrow}</Eyebrow>
           </div>

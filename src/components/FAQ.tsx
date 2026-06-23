@@ -22,10 +22,10 @@ function FAQItem({
 }) {
   return (
     <div
-      className={`group overflow-hidden rounded-2xl border transition-all duration-300 motion-reduce:transition-none motion-reduce:hover:transform-none ${
+      className={`group overflow-hidden rounded-2xl border bg-white transition-all duration-300 motion-reduce:transition-none motion-reduce:hover:transform-none ${
         isOpen
-          ? "border-[#FF6600]/30 bg-white shadow-[0_2px_8px_-3px_rgba(10,10,10,0.10),0_22px_48px_-18px_rgba(10,10,10,0.14)]"
-          : "border-[#e5e7eb] bg-white hover:-translate-y-0.5 hover:border-[#ff8533]/60 hover:shadow-[0_22px_50px_-16px_rgba(255,102,0,0.35)]"
+          ? "border-[#ff8533]/60 shadow-[0_22px_50px_-16px_rgba(255,102,0,0.35)]"
+          : "border-transparent shadow-[0_2px_8px_-3px_rgba(10,10,10,0.10),0_22px_48px_-18px_rgba(10,10,10,0.14)] hover:-translate-y-0.5 hover:border-[#ff8533]/60 hover:shadow-[0_22px_50px_-16px_rgba(255,102,0,0.35)]"
       }`}
     >
       <button
@@ -155,7 +155,7 @@ export default function FAQ({
     setOpenIndex((current) => (current === index ? null : index));
 
   return (
-    <section id="faq" className="bg-white py-24 md:py-32 lg:py-40">
+    <section id="faq" className="bg-white py-16 md:py-24 lg:py-32">
       <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-16">
 

@@ -309,7 +309,7 @@ export default function UseCases({
   const current = useCases.find((uc) => uc.id === activeId) ?? useCases[0];
 
   return (
-    <section id="cas-dusages" className="overflow-hidden py-24 md:py-32 lg:py-40" style={SECTION_BG}>
+    <section id="cas-dusages" className="overflow-hidden py-16 md:py-24 lg:py-32" style={SECTION_BG}>
       <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
 
         {/* EN-TÊTE DE SECTION (aligné à gauche — motif bento canonique) */}
@@ -375,7 +375,7 @@ export default function UseCases({
           {/* COLONNE GAUCHE — texte + bénéfices + CTA, posée sur une carte blanche
              (motif canonique « +30 agences » : bg blanc + ombre des tuiles qui se
              renforce au survol, cf. AboutBento TUILE 3). */}
-          <div className={`flex h-full flex-col justify-center rounded-2xl bg-white p-8 transition-shadow duration-300 md:p-10 lg:col-span-7 xl:col-span-6 ${TILE_SHADOW}`}>
+          <div className={`flex h-full flex-col justify-center rounded-2xl bg-white p-6 transition-shadow duration-300 md:p-8 lg:col-span-7 lg:p-10 xl:col-span-6 ${TILE_SHADOW}`}>
             {/* Icône du cas d'usage actif — chip d'icônes canonique, répétée au-dessus
                du titre de la carte (même icône que la pill d'onglet / le chip image). */}
             <span className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#fff4ec] text-[#FF6600] [&>svg]:h-7 [&>svg]:w-7">
@@ -430,7 +430,7 @@ export default function UseCases({
 
           {/* COLONNE DROITE — tuile image illustrative (suit l'onglet actif) */}
           <div className="lg:col-span-5 xl:col-span-6">
-            <div className={`group relative h-full min-h-[480px] overflow-hidden rounded-3xl bg-zinc-100 transition-shadow duration-300 lg:min-h-[560px] ${TILE_SHADOW}`}>
+            <div className={`group relative h-full min-h-[340px] overflow-hidden rounded-3xl bg-zinc-100 transition-shadow duration-300 md:min-h-[480px] lg:min-h-[560px] ${TILE_SHADOW}`}>
               <img
                 src={current.image}
                 alt={current.headline}
