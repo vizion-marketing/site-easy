@@ -181,7 +181,7 @@ export default function SecteursBenefices({
   }, []);
 
   return (
-    <section id="secteurs" className="overflow-hidden bg-[#f6f6f7] py-24 md:py-32 lg:py-40">
+    <section id="secteurs" className="overflow-hidden bg-[#f6f6f7] py-16 md:py-24 lg:py-32">
       <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
 
         {/* EN-TÊTE DE SECTION (aligné à gauche) + contrôles du slider (haut-droite, md+) */}

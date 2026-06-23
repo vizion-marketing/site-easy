@@ -354,7 +354,7 @@ export default function VirtualTourPilot({
         </div>
 
         <div
-          className={`relative mx-auto w-full max-w-[var(--container)] px-6 py-24 transition-all duration-700 ease-out motion-reduce:transition-none sm:px-8 lg:py-0 ${
+          className={`relative mx-auto w-full max-w-[var(--container)] px-6 py-16 transition-all duration-700 ease-out motion-reduce:transition-none sm:px-8 md:py-24 lg:py-0 ${
             revealed ? "opacity-100 scale-100" : "opacity-0 scale-[0.97]"
           }`}
         >

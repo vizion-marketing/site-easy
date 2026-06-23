@@ -453,22 +453,34 @@ export default function ProcessTimeline({
   const [progress, setProgress] = useState(0); // 0→1 défilé des étapes (phase A)
   const [pullProgress, setPullProgress] = useState(0); // 0→1 tirage de la carte CTA (phase B)
   const [reduce, setReduce] = useState(false);
+  // Mobile/tablette (< lg) : on désactive le scroll-jacking horizontal (620vh,
+  // pénible au doigt) au profit de la pile verticale statique (même rendu que
+  // le fallback reduced-motion). L'expérience épinglée reste sur desktop.
+  const [compact, setCompact] = useState(false);
 
   const path = activeKey === "single" ? single : multi;
   const totalPanels = path.steps.length;
 
-  // Détection prefers-reduced-motion.
+  // Détection prefers-reduced-motion + petit écran.
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const apply = () => setReduce(mq.matches);
+    const motionMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const smallMq = window.matchMedia("(max-width: 1023px)");
+    const apply = () => {
+      setReduce(motionMq.matches);
+      setCompact(smallMq.matches);
+    };
     apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
+    motionMq.addEventListener("change", apply);
+    smallMq.addEventListener("change", apply);
+    return () => {
+      motionMq.removeEventListener("change", apply);
+      smallMq.removeEventListener("change", apply);
+    };
   }, []);
 
   // Progress dérivé de la position de la section épinglée.
   useEffect(() => {
-    if (reduce) return;
+    if (reduce || compact) return;
     const root = document.documentElement;
     const compute = () => {
       rafRef.current = 0;
@@ -500,12 +512,13 @@ export default function ProcessTimeline({
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       root.style.scrollSnapType = "";
     };
-  }, [reduce]);
+  }, [reduce, compact]);
 
-  /* Fallback reduced-motion : en-tête + onglets + pile verticale + clôture, sans pin/snap. */
-  if (reduce) {
+  /* Mobile (< lg) ou reduced-motion : en-tête + onglets + pile verticale + clôture,
+     sans pin ni scroll-jacking. */
+  if (reduce || compact) {
     return (
-      <section id="comment-ca-se-passe-timeline" className={`${RISE_OVER} bg-[#FF6600] py-24 md:py-32 lg:py-40`} style={BRAND_DIAGONAL}>
+      <section id="comment-ca-se-passe-timeline" className={`${RISE_OVER} bg-[#FF6600] py-16 md:py-24 lg:py-32`} style={BRAND_DIAGONAL}>
         <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
           <div className="mb-12 flex flex-col gap-6 text-left lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">

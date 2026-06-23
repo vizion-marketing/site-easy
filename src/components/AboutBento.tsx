@@ -118,7 +118,7 @@ export default function AboutBento({
   const marqueeAvatars = Array.from({ length: reps }, () => franchiseeAvatars).flat();
 
   return (
-    <section id="a-propos" className="overflow-hidden bg-white pt-10 md:pt-14 lg:pt-16 pb-24 md:pb-32 lg:pb-40">
+    <section id="a-propos" className="overflow-hidden bg-white pt-10 md:pt-14 lg:pt-16 pb-16 md:pb-24 lg:pb-32">
       <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
 
         {/* EN-TÊTE DE SECTION */}

@@ -361,7 +361,7 @@ export default function Franchises({
   const portrait = activeFranchisee;
 
   return (
-    <section id="franchises" className="relative overflow-hidden bg-white py-24 text-[#0a0a0a] md:py-32 lg:py-40">
+    <section id="franchises" className="relative overflow-hidden bg-white py-16 text-[#0a0a0a] md:py-24 lg:py-32">
       <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
         <div className="grid grid-cols-1 items-start gap-16 lg:grid-cols-12 lg:gap-20">
 

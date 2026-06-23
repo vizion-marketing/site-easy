@@ -74,7 +74,7 @@ export default function Specificites({
   ],
 }: Props) {
   return (
-    <section id="specificites" className="overflow-hidden bg-white py-24 md:py-32 lg:py-40">
+    <section id="specificites" className="overflow-hidden bg-white py-16 md:py-24 lg:py-32">
       <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
         <div className="grid grid-cols-1 items-stretch gap-10 lg:grid-cols-2 lg:gap-16">
 
