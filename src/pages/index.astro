@@ -307,7 +307,7 @@ const faqItems = (faqDocs ?? [])
 ---
 
 <BaseLayout>
-  <Navbar client:load tours={displayTours} secteurs={secteurs} casUsages={casUsages} />
+  <Navbar client:idle tours={displayTours} secteurs={secteurs} casUsages={casUsages} />
   <Hero client:visible />
   <AboutBento client:visible />
   <VirtualTourPilot client:visible />

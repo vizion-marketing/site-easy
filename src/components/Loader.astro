@@ -299,10 +299,13 @@
       window.setTimeout(hide, wait);
     }
 
-    if (document.readyState === "complete") {
+    // Dismiss dès que le DOM est prêt (DOMContentLoaded) plutôt qu'au 'load'
+    // complet : ne plus attendre la fin des assets lourds (vidéo hero 2,4 Mo,
+    // iframe Vimeo) avant de révéler la page. Le poster du hero couvre le LCP.
+    if (document.readyState !== "loading") {
       onReady();
     } else {
-      window.addEventListener("load", onReady, { once: true });
+      document.addEventListener("DOMContentLoaded", onReady, { once: true });
     }
 
     // Filet de sécurité : ne jamais bloquer l'écran indéfiniment.

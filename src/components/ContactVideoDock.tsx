@@ -237,6 +237,7 @@ export default function ContactVideoDock({
               className="h-full w-full rounded-2xl shadow-2xl"
               allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
               allowFullScreen
+              loading="lazy"
               title="Visite virtuelle 360° en vidéo — easyvirtual.tours"
             />
           </div>
@@ -270,6 +271,7 @@ export default function ContactVideoDock({
                 className="pointer-events-none absolute left-1/2 top-1/2 h-[300%] w-[300%] -translate-x-1/2 -translate-y-1/2 sm:h-[180%] sm:w-[180%]"
                 allow="autoplay; fullscreen; picture-in-picture"
                 title="Aperçu de la visite virtuelle en vidéo"
+                loading="lazy"
                 tabIndex={-1}
                 aria-hidden="true"
               />

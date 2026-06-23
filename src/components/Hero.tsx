@@ -1,6 +1,19 @@
+import { useEffect, useState } from "react";
 import { LogoSet } from "./LogoMarquee";
 
 export default function Hero() {
+  // Ne monte la vidéo de fond (2,4 Mo) que sur desktop (≥ md). Sur mobile, seul
+  // le poster statique est rendu → le mp4 n'est jamais requêté (l'autoPlay force
+  // le fetch même avec preload="none"/display:none, donc on ne rend pas l'élément).
+  const [showVideo, setShowVideo] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const apply = () => setShowVideo(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
   return (
     <section className="relative w-full bg-white -mt-[84px] sm:-mt-[88px] pt-2 pb-6 md:pb-8 selection:bg-[#FF6600]/30">
       {/* IMAGE QUASI PLEINE LARGEUR — légers espaces latéraux seulement */}
@@ -8,15 +21,22 @@ export default function Hero() {
         <div className="relative overflow-hidden rounded-3xl min-h-screen flex flex-col shadow-[0_12px_32px_-16px_rgba(255,102,0,0.12)]">
           {/* ARRIÈRE-PLAN PLEINE LARGEUR */}
           <div className="absolute inset-0 z-0" aria-hidden="true">
-            <video
-              src="/7b3c0346-1542-48f2-bea3-c7fc0c29ce71.mp4"
-              poster="/testbg.webp"
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="h-full w-full object-cover"
-            />
+            {/* Poster statique léger (~104 Ko) — base toujours présente = LCP. */}
+            <img src="/testbg.webp" alt="" className="h-full w-full object-cover" />
+            {/* Vidéo de fond montée UNIQUEMENT sur desktop (≥ md) ; sur mobile le
+               mp4 de 2,4 Mo n'est jamais requêté. */}
+            {showVideo && (
+              <video
+                poster="/testbg.webp"
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="absolute inset-0 h-full w-full object-cover"
+              >
+                <source src="/7b3c0346-1542-48f2-bea3-c7fc0c29ce71.mp4" type="video/mp4" />
+              </video>
+            )}
             {/* Voile sombre léger en bas — lisibilité du texte blanc */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent" />
           </div>
