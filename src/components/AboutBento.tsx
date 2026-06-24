@@ -3,6 +3,8 @@ import { FRANCHISE_AVATARS } from "../lib/franchises";
 
 type Props = {
   eyebrow?: string;
+  /* Nom de marque rendu en écriture secondaire (Cooper Black) en tête du titre. */
+  brandName?: string;
   titlePart1?: string;
   titleHighlight?: string;
   titlePart2?: string;
@@ -31,6 +33,9 @@ type Props = {
   /* Tuile « acteur engagé » (éco-responsable / RSE) — bas de la colonne droite. */
   engagementTitle?: string;
   engagementDescription?: string;
+  /* Gros chiffre-clé RSE en tête de la tuile « acteur engagé » : part du CA reversée. */
+  charityStat?: string;
+  charityLabel?: string;
 };
 
 /* Pastille numérotée (01–04) — badge « outline » : contour fin + chiffre zéro-paddé.
@@ -52,7 +57,7 @@ function StepBadge({
   return (
     <span
       aria-hidden="true"
-      className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl border font-heading text-[13px] font-bold tracking-wide ${styles} ${className}`}
+      className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border font-heading text-[13px] font-bold tracking-wide ${styles} ${className}`}
     >
       {String(n).padStart(2, "0")}
     </span>
@@ -85,7 +90,8 @@ const TILE_SHADOW =
    props optionnelles (valeurs par défaut FR), branchables à Sanity plus tard. */
 export default function AboutBento({
   eyebrow = "Qui sommes-nous",
-  titlePart1 = "easyVirtual.tours, le ",
+  brandName = "easyVirtual.tours",
+  titlePart1 = ", le ",
   titleHighlight = "leader français",
   titlePart2 = " de la visite virtuelle",
   intro = "Derrière chaque visite virtuelle, quatre forces réunies : l'appui d'un grand groupe, un réseau d'agences de proximité partout en France, la technologie de capture 3D la plus avancée du marché, et un engagement éco-responsable assumé.",
@@ -110,6 +116,8 @@ export default function AboutBento({
   engagementTitle = "Un acteur engagé pour la planète",
   engagementDescription =
     "Chaque visite virtuelle, ce sont des déplacements en moins. Le jumeau numérique permet de tout visiter à distance : moins de trajets, moins de CO₂, sans rien sacrifier à la qualité de la visite.",
+  charityStat = "1,5%",
+  charityLabel = "de notre CA est reversé à la charité",
 }: Props) {
   // Piste du marquee : on répète la liste pour remplir la largeur du bloc (au moins ~14
   // vignettes), puis le rendu la duplique (translateX -50%) pour une boucle sans couture.
@@ -126,6 +134,7 @@ export default function AboutBento({
           <Eyebrow>{eyebrow}</Eyebrow>
 
           <h2 className="mt-4 max-w-7xl font-heading text-3xl font-bold leading-[1.05] tracking-tight text-[#0a0a0a] md:text-4xl lg:text-5xl">
+            <span className="font-cooper">{brandName}</span>
             {titlePart1}
             <span className="font-cooper text-[#FF6600]">{titleHighlight}</span>
             {titlePart2}
@@ -351,12 +360,15 @@ export default function AboutBento({
           <div className={`flex flex-col rounded-2xl bg-[#fdfaf6] p-8 transition-shadow duration-300 md:p-10 ${TILE_SHADOW} min-[1440px]:aspect-square`}>
             <StepBadge n={4} variant="orange" className="mb-6" />
 
-            {/* Chip d'icône éco-responsable (feuille) */}
-            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-[#fff4ec] text-[#FF6600]">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7" aria-hidden="true">
-                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 3.5 1 9.2a7 7 0 0 1-9 8.8Zm0 0v-2" />
-                <path d="M11 13c0-3 2-3 2-3" />
-              </svg>
+            {/* Gros chiffre-clé RSE — part du CA reversée à la charité (remplace l'ancienne
+               chip d'icône feuille). Chiffre en écriture secondaire (Cooper Black) orange. */}
+            <div className="mb-6 flex flex-col items-start gap-1">
+              <span className="font-cooper text-6xl leading-[0.9] tracking-tighter text-[#FF6600] md:text-7xl">
+                {charityStat}
+              </span>
+              <span className="max-w-[220px] text-[11px] font-bold uppercase leading-tight tracking-[0.12em] text-gray-500 md:text-xs">
+                {charityLabel}
+              </span>
             </div>
 
             <h3 className="font-heading text-2xl text-[#0a0a0a]">{engagementTitle}</h3>
@@ -389,7 +401,7 @@ export default function AboutBento({
 
         {/* BANDE TÉMOIGNAGE — pleine largeur, photo d'équipe en arrière-plan (paysage).
            Voile dégradé depuis la gauche pour garder le texte lisible. */}
-        <div className={`group relative mt-4 min-h-[360px] overflow-hidden rounded-3xl bg-zinc-100 transition-shadow duration-300 md:mt-6 md:min-h-[440px] ${TILE_SHADOW}`}>
+        <div className={`group relative mt-4 min-h-[440px] overflow-hidden rounded-3xl bg-zinc-100 transition-shadow duration-300 md:mt-6 md:min-h-[600px] ${TILE_SHADOW}`}>
           <img
             src={imagePath}
             alt="L'équipe easyVirtual.tours"
