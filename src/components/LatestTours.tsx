@@ -41,7 +41,7 @@ function TourCard({
   return (
     <a
       href={tour.href}
-      className={`group relative block overflow-hidden rounded-3xl bg-gray-100 ${className}`}
+      className={`group relative block overflow-hidden rounded-3xl bg-gray-100 transition-transform duration-300 active:scale-[0.99] motion-reduce:transition-none ${className}`}
     >
       {tour.imageUrl ? (
         <img

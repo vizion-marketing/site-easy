@@ -18,7 +18,7 @@ export default function Hero() {
     <section className="relative w-full bg-white -mt-[84px] sm:-mt-[88px] pt-2 pb-6 md:pb-8 selection:bg-[#FF6600]/30">
       {/* IMAGE QUASI PLEINE LARGEUR — légers espaces latéraux seulement */}
       <div className="w-full px-3 sm:px-4">
-        <div className="relative overflow-hidden rounded-3xl min-h-screen flex flex-col shadow-[0_12px_32px_-16px_rgba(255,102,0,0.12)]">
+        <div className="relative overflow-hidden rounded-3xl min-h-svh flex flex-col shadow-[0_12px_32px_-16px_rgba(255,102,0,0.12)]">
           {/* ARRIÈRE-PLAN PLEINE LARGEUR */}
           <div className="absolute inset-0 z-0" aria-hidden="true">
             {/* Poster statique léger (~104 Ko) — base toujours présente = LCP. */}
@@ -63,7 +63,7 @@ export default function Hero() {
                   </h1>
 
                   <div className="mt-10 flex flex-col sm:flex-row items-center gap-4">
-                    <a href="#demo" className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#FF6600] hover:bg-[#e85c00] text-white rounded-full font-semibold transition-all duration-300 shadow-xl shadow-orange-900/10">
+                    <a href="#demo" className="btn-shine group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#FF6600] hover:bg-[#e85c00] text-white rounded-full font-semibold transition-all duration-300 shadow-xl shadow-orange-900/10">
                       Demander une démo
                       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transform-none">
                         <path d="M5 10h10m-4-4l4 4-4 4" />

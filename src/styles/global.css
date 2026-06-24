@@ -67,6 +67,17 @@
   }
 }
 
+/* Filet de sécurité reduced-motion — défense en profondeur pour les animations
+   appliquées via valeurs arbitraires Tailwind (`animate-[bento-marquee_…]`,
+   `animate-[wall-scroll_…]`, etc.). Les classes nommées (.marquee, .animate-fade-in,
+   .halo-drift…) gardent déjà leur propre bloc reduced-motion ; cette règle couvre les
+   usages `animate-[` même si un `motion-reduce:animate-none` venait à manquer. */
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-["] {
+    animation: none !important;
+  }
+}
+
 :root {
   --background: #ffffff;
   --foreground: #0a0a0a;
@@ -133,6 +144,25 @@ body {
   }
 }
 
+/* Accessibilité — reset global `prefers-reduced-motion` (WCAG 2.1 — 2.3.3 « Animation
+   from Interactions »). Politique de référence : pour les utilisateurs qui demandent
+   moins d'animations, on neutralise TOUTES les transitions et animations en les rendant
+   quasi instantanées, sans toucher aux `transform` de base (on annule seulement la DURÉE,
+   pas la valeur) — donc les centrages `-translate-x-1/2` etc. restent intacts. Couvre d'un
+   coup les ~120 effets inline `hover:`/`active:` (lift, scale, glissement de flèche) + les
+   animations en boucle (marquees, halos, shine). Complète — sans les remplacer — les gardes
+   explicites `motion-reduce:*` / `@media` déjà posées plus bas. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Pas de « capslock » sur tout le site.
    La marque bannit le texte tout en majuscules : on neutralise l'utilitaire
    Tailwind `uppercase` partout (eyebrows, badges, labels de stats, hints…),
@@ -180,7 +210,6 @@ body {
 /* Marquee du bandeau de logos (intégré en bas du hero). */
 .marquee {
   animation: marquee 35s linear infinite;
-  will-change: transform;
 }
 .marquee:hover {
   animation-play-state: paused;
@@ -233,6 +262,27 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in {
+    animation: none;
+  }
+}
+
+/* Ouverture de menu déroulant — léger fondu + glissement vers le bas.
+   Utilisé par le sélecteur mobile de la section « Cas d'usages » (UseCases). */
+.animate-dropdown-in {
+  animation: ev-dropdown-in 200ms ease-out;
+}
+@keyframes ev-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-dropdown-in {
     animation: none;
   }
 }
@@ -353,17 +403,26 @@ body {
   }
 }
 
+/* Mobile/tablette (< lg) : on désactive le scroll-snap vertical global. Sur tactile,
+   les points de snap interrompent le momentum scroll (flick) et provoquent des arrêts
+   brutaux. ProcessTimeline est déjà en mode « compact » sans pin sous 1024px, donc le
+   snap n'y apporte rien ; VirtualTourPilot perd son snap plein écran (souhaité sur
+   mobile). Le snap reste actif sur desktop (≥ lg). */
+@media (max-width: 1023px) {
+  html {
+    scroll-snap-type: none;
+  }
+}
+
 /* Halos de fond « vivants » — dérive très lente des blobs blancs flous de
    l'écran-titre orange (section « Démonstration en direct », VirtualTourPilot).
    Mouvement minimal (translate + scale, transform GPU only) ; les deux halos
    sont désynchronisés (durées + sens opposés) pour éviter tout effet pulsé. */
 .halo-drift {
   animation: halo-drift 22s ease-in-out infinite;
-  will-change: transform;
 }
 .halo-drift-2 {
   animation: halo-drift 28s ease-in-out infinite reverse;
-  will-change: transform;
 }
 @keyframes halo-drift {
   0%,
@@ -375,6 +434,15 @@ body {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .halo-drift,
+  .halo-drift-2 {
+    animation: none;
+  }
+}
+/* Mobile/tablette (< lg) : on fige les halos. Ces blobs très flous (blur 100-120px)
+   recomposités en continu sont le poste GPU le plus lourd au scroll sur les téléphones
+   milieu de gamme. Figés, ils ne coûtent plus qu'une passe de peinture statique. */
+@media (max-width: 1023px) {
   .halo-drift,
   .halo-drift-2 {
     animation: none;

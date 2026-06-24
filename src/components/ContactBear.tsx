@@ -94,7 +94,7 @@ export default function ContactBear({
           <Eyebrow>{eyebrow}</Eyebrow>
           <h2 className="mt-4 font-heading text-4xl font-bold leading-[1.03] tracking-tight text-[#0a0a0a] md:text-5xl">
             {titlePart1}
-            <span className="font-cooper text-[#FF6600]">{titleHighlight}</span>
+            <span className="font-cooper highlight-shine">{titleHighlight}</span>
             {titlePart2}
           </h2>
           {intro && <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-600 md:text-lg">{intro}</p>}
@@ -112,7 +112,7 @@ export default function ContactBear({
           <div className="mt-7 flex flex-wrap items-center justify-center gap-5">
             <a
               href={ctaHref}
-              className="group inline-flex items-center gap-3 rounded-full bg-[#FF6600] px-9 py-4 font-semibold text-white shadow-xl shadow-orange-900/15 transition-all duration-300 hover:-translate-y-1 hover:bg-[#e85c00] active:scale-95 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+              className="btn-shine group inline-flex items-center gap-3 rounded-full bg-[#FF6600] px-9 py-4 font-semibold text-white shadow-xl shadow-orange-900/15 transition-all duration-300 hover:-translate-y-1 hover:bg-[#e85c00] active:scale-95 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             >
               {ctaLabel}
               <ArrowIcon className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1 motion-reduce:transform-none" />

@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, useRef, useEffect, type ReactNode } from "react";
 import Eyebrow from "./Eyebrow";
 
 /* Ombre canonique des tuiles — deux couches grises neutres (contact net +
@@ -308,6 +308,28 @@ export default function UseCases({
   const [activeId, setActiveId] = useState(useCases[0]?.id);
   const current = useCases.find((uc) => uc.id === activeId) ?? useCases[0];
 
+  /* Sélecteur mobile (menu déroulant) — état d'ouverture + fermeture au clic
+     extérieur / touche Échap. Inactif sur desktop (le dropdown est `md:hidden`). */
+  const [isMenuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    function onPointerDown(event: PointerEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenuOpen(false);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isMenuOpen]);
+
   return (
     <section id="cas-dusages" className="overflow-hidden py-16 md:py-24 lg:py-32" style={SECTION_BG}>
       <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
@@ -323,12 +345,103 @@ export default function UseCases({
           <p className="mt-8 max-w-2xl text-lg leading-relaxed text-gray-600">{intro}</p>
         </div>
 
-        {/* SÉLECTEUR D'ONGLETS (pills — passent à la ligne sur mobile) */}
+        {/* SÉLECTEUR — mobile : menu déroulant (choix manuel) · desktop : pills */}
         <div className="mb-8 flex justify-center md:mb-10">
+
+          {/* SÉLECTEUR MOBILE — menu déroulant (dropdown). Pilote le même état
+              `activeId` que les pills desktop ; visible uniquement sous `md`. */}
+          <div className="relative w-full md:hidden" ref={menuRef}>
+            {/* Bouton déclencheur — affiche le cas d'usage actif */}
+            <button
+              type="button"
+              onClick={() => setMenuOpen(!isMenuOpen)}
+              aria-haspopup="listbox"
+              aria-expanded={isMenuOpen}
+              className="flex w-full items-center justify-between gap-4 rounded-2xl border border-[#e5e7eb] bg-white p-4 text-left shadow-[0_2px_8px_-3px_rgba(10,10,10,0.10),0_22px_48px_-18px_rgba(10,10,10,0.14)] transition-all duration-300 active:scale-[0.98] motion-reduce:transition-none"
+            >
+              <span className="flex items-center gap-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fff4ec] text-[#FF6600] [&>svg]:h-5 [&>svg]:w-5">
+                  {current.icon}
+                </span>
+                <span className="font-heading text-base font-bold text-[#0a0a0a]">{current.tabLabel}</span>
+              </span>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`h-5 w-5 shrink-0 text-[#FF6600] transition-transform duration-300 motion-reduce:transition-none ${isMenuOpen ? "rotate-180" : "rotate-0"}`}
+                aria-hidden="true"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+
+            {/* Panneau déroulant — liste de tous les cas d'usage */}
+            {isMenuOpen && (
+              <div
+                role="listbox"
+                aria-label="Choisissez un cas d'usage"
+                className="absolute left-0 top-full z-50 mt-3 w-full overflow-hidden rounded-2xl border border-[#e5e7eb] bg-white shadow-[0_4px_12px_-3px_rgba(10,10,10,0.14),0_32px_64px_-20px_rgba(10,10,10,0.20)] motion-safe:animate-dropdown-in"
+              >
+                <div className="max-h-[60vh] overflow-y-auto py-2">
+                  {useCases.map((uc) => {
+                    const isActive = activeId === uc.id;
+                    return (
+                      <button
+                        key={uc.id}
+                        role="option"
+                        type="button"
+                        aria-selected={isActive}
+                        onClick={() => {
+                          setActiveId(uc.id);
+                          setMenuOpen(false);
+                        }}
+                        className={`flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors duration-200 motion-reduce:transition-none ${
+                          isActive ? "bg-[#fff4ec]" : "hover:bg-gray-50 active:bg-gray-100"
+                        }`}
+                      >
+                        <span className="flex items-center gap-4">
+                          <span
+                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors duration-200 [&>svg]:h-5 [&>svg]:w-5 ${
+                              isActive ? "bg-[#FF6600] text-white" : "bg-[#fff4ec] text-[#FF6600]"
+                            }`}
+                          >
+                            {uc.icon}
+                          </span>
+                          <span className={`text-sm font-semibold ${isActive ? "text-[#0a0a0a]" : "text-gray-700"}`}>
+                            {uc.tabLabel}
+                          </span>
+                        </span>
+                        {isActive && (
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-4 w-4 shrink-0 text-[#FF6600]"
+                            aria-hidden="true"
+                          >
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* SÉLECTEUR DESKTOP — pills d'onglets (masquées sous `md`) */}
           <div
             role="tablist"
             aria-label="Choisissez un cas d'usage"
-            className="flex flex-wrap justify-center gap-1.5 rounded-[2rem] border border-gray-100 bg-[#fdfaf6] p-1.5"
+            className="hidden flex-wrap justify-center gap-1.5 rounded-[2rem] border border-gray-100 bg-[#fdfaf6] p-1.5 md:flex"
           >
             {useCases.map((uc) => {
               const isActive = activeId === uc.id;

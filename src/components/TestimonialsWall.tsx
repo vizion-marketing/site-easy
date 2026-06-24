@@ -16,9 +16,9 @@ type Props = {
    Sens alternés : la colonne du milieu défile à l'envers (`animation-direction: reverse`)
    et chaque colonne a une durée différente → le mur ne paraît jamais synchronisé. */
 const COLUMN_ANIM = [
-  "animate-[wall-scroll_42s_linear_infinite]",
-  "animate-[wall-scroll_34s_linear_infinite] [animation-direction:reverse]",
-  "animate-[wall-scroll_50s_linear_infinite]",
+  "animate-[wall-scroll_42s_linear_infinite] motion-reduce:animate-none",
+  "animate-[wall-scroll_34s_linear_infinite] [animation-direction:reverse] motion-reduce:animate-none",
+  "animate-[wall-scroll_50s_linear_infinite] motion-reduce:animate-none",
 ];
 
 /* Masquage responsive : 1 colonne sur mobile, 2 sur md, 3 sur lg. */
