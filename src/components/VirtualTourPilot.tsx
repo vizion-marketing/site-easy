@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ComponentType } from "react";
+import { useState, type ComponentType } from "react";
 import {
   RotateMotion,
   GridMotion,
@@ -207,163 +207,27 @@ export default function VirtualTourPilot({
   // Panneau « fonctionnalités » : déplié au départ ; le replier fait s'agrandir la visite.
   const [featuresOpen, setFeaturesOpen] = useState(true);
 
-  // ── Intro « Attention » (couche 1) ──────────────────────────────────────
-  // Quand l'écran orange entre dans le viewport, un mot géant en police Cooper
-  // apparaît au zoom (pending → intro), tient un instant, puis se dissout pour
-  // révéler le contenu (titre, ours, pills, CTA) → reveal. Joué une seule fois.
-  const sectionRef = useRef<HTMLElement>(null);
-  const [phase, setPhase] = useState<"pending" | "intro" | "reveal">("pending");
-
-  useEffect(() => {
-    // prefers-reduced-motion : on saute l'intro, contenu révélé d'emblée.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setPhase("reveal");
-      return;
-    }
-
-    const section = sectionRef.current;
-    if (!section) return;
-
-    let started = false;
-    let revealTimer: ReturnType<typeof setTimeout> | undefined;
-
-    // Verrou de scroll pendant l'intro : tant que le contenu de l'écran orange
-    // (« Vous vous apprêtez à plonger… ») n'est pas apparu, la section visite du
-    // dessous ne doit pas commencer à défiler. On bloque les gestes de scroll
-    // (molette / tactile / clavier) — sans toucher au layout, pour ne pas faire
-    // « sauter » l'écran orange plein cadre (pas de scrollbar qui disparaît) —
-    // puis on relâche à la révélation.
-    const SCROLL_KEYS = ["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " ", "Spacebar"];
-    const blockWheel = (e: Event) => e.preventDefault();
-    const blockKeys = (e: KeyboardEvent) => {
-      if (SCROLL_KEYS.includes(e.key)) e.preventDefault();
-    };
-    const lockScroll = () => {
-      window.addEventListener("wheel", blockWheel, { passive: false });
-      window.addEventListener("touchmove", blockWheel, { passive: false });
-      window.addEventListener("keydown", blockKeys);
-    };
-    const unlockScroll = () => {
-      window.removeEventListener("wheel", blockWheel);
-      window.removeEventListener("touchmove", blockWheel);
-      window.removeEventListener("keydown", blockKeys);
-    };
-
-    const start = () => {
-      if (started) return;
-      started = true;
-      // 1) On verrouille le scroll, puis on cale PROPREMENT l'écran orange plein
-      //    cadre en visant le HAUT DE LA SECTION (jamais l'écran sticky, dont le
-      //    rect se « colle » à 0 → scrollTo no-op en scroll rapide, ce qui laissait
-      //    la visite déjà remontée). La visite est ainsi repoussée hors champ
-      //    pendant toute l'intro.
-      lockScroll();
-      // Si on a DÉPASSÉ le haut de la section (scroll rapide → la visite pointe
-      // déjà en bas de l'écran), on recale INSTANTANÉMENT pour qu'elle n'apparaisse
-      // jamais ; sinon (approche normale) on glisse en douceur jusqu'au plein cadre.
-      const targetY = section.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({ top: targetY, behavior: window.scrollY - targetY > 8 ? "auto" : "smooth" });
-      // 2) zoom-in du mot (la transition pending → intro joue à la frame suivante)
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => setPhase("intro")),
-      );
-      // 3) après le zoom (~0,9 s) + maintien (~0,8 s) → dissolution + révélation,
-      //    puis on relâche le scroll : la visite peut enfin remonter par-dessus.
-      revealTimer = setTimeout(() => {
-        setPhase("reveal");
-        unlockScroll();
-      }, 1700);
-    };
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            start();
-            observer.disconnect();
-            break;
-          }
-        }
-      },
-      // Se déclenche dès que la section occupe ~90 % du viewport (bande active = le
-      // haut 10 %). On verrouille AVANT que la visite du dessous puisse pointer en
-      // bas de l'écran → aucun aperçu de la carte tant que l'intro n'est pas finie.
-      { rootMargin: "0px 0px -90% 0px", threshold: 0 },
-    );
-    observer.observe(section);
-
-    return () => {
-      observer.disconnect();
-      if (revealTimer) clearTimeout(revealTimer);
-      unlockScroll();
-    };
-  }, []);
-
-  const revealed = phase === "reveal";
-
   return (
-    <section ref={sectionRef} id="visite-virtuelle" className="relative snap-start overflow-clip">
+    <section id="visite-virtuelle" className="relative snap-start overflow-clip">
 
       {/* ═══════ COUCHE 1 — ÉCRAN-TITRE ORANGE (sticky, plein écran) ═══════ */}
       <div
-        className="relative flex min-h-svh items-center overflow-x-clip bg-[#FF6600] lg:sticky lg:top-0 lg:h-screen"
+        className="relative flex min-h-svh items-center overflow-x-clip bg-[#FF6600] pt-[84px] sm:pt-[88px] lg:sticky lg:top-0 lg:h-screen"
         style={BRAND_DIAGONAL}
       >
-        {/* OVERLAY D'INTRO « Attention » — se dissout (phase reveal) pour révéler le contenu */}
-        <div
-          className={`absolute inset-x-0 top-0 z-40 flex h-[100svh] items-center justify-center overflow-hidden transition-opacity duration-700 ease-in-out ${
-            phase === "reveal" ? "opacity-0 pointer-events-none" : "opacity-100"
-          }`}
-          style={{
-            backgroundImage: "linear-gradient(40deg, #e85c00 0%, #FF6600 52%, #ff8a3d 100%)",
-            backgroundColor: "#FF6600",
-          }}
-          aria-hidden="true"
-        >
-          {/* Décor : cercles concentriques + sparkle (cohérent avec l'écran orange) */}
-          <div className="pointer-events-none absolute inset-0 flex select-none items-center justify-center overflow-hidden">
-            <div className="absolute aspect-square h-[60vh] rounded-full border border-white/10" />
-            <div className="absolute aspect-square h-[110vh] scale-110 rounded-full border border-white/5" />
-            <div className="absolute right-1/4 top-1/4 opacity-20">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" className="text-white">
-                <path d="M12 0L13.8 8.2L22 10L13.8 11.8L12 20L10.2 11.8L2 10L10.2 8.2L12 0Z" fill="currentColor" />
-              </svg>
-            </div>
-          </div>
-
-          {/* Mot géant en police Cooper — apparaît au zoom puis se dissout */}
-          <div className="relative z-10 mx-auto flex w-full max-w-[var(--container)] items-center justify-center px-6 sm:px-8">
-            <span
-              className={`font-cooper whitespace-nowrap text-center text-[clamp(2rem,11vw,11rem)] leading-[0.9] tracking-tight text-[#fff4ec] transition-all duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${
-                phase === "pending"
-                  ? "scale-[0.55] opacity-0"
-                  : phase === "intro"
-                    ? "scale-100 opacity-100"
-                    : "scale-[1.18] opacity-0"
-              }`}
-            >
-              Attention<span className="text-white/60">…</span>
-            </span>
-          </div>
-        </div>
-
         {/* Décors de fond (halos flous) */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="halo-drift absolute top-[10%] -right-[5%] h-[500px] w-[500px] rounded-full bg-white/10 blur-[120px]" />
           <div className="halo-drift-2 absolute -bottom-[10%] -left-[5%] h-[400px] w-[400px] rounded-full bg-white/10 blur-[100px]" />
         </div>
 
-        <div
-          className={`relative mx-auto w-full max-w-[var(--container)] px-6 py-16 transition-all duration-700 ease-out motion-reduce:transition-none sm:px-8 md:py-24 lg:py-0 ${
-            revealed ? "opacity-100 scale-100" : "opacity-0 scale-[0.97]"
-          }`}
-        >
+        <div className="relative mx-auto w-full max-w-[var(--container)] px-6 py-10 sm:px-8 md:py-12 lg:py-0">
           <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-20">
 
             {/* COLONNE GAUCHE — texte (blanc sur orange) */}
-            <div className="z-10 flex flex-col items-start gap-8 lg:col-span-7">
+            <div className="z-10 flex flex-col items-start gap-6 lg:col-span-7">
               {/* Titre XXL */}
-              <h2 className="font-heading text-4xl font-extralight leading-[1.05] tracking-tight text-white md:text-6xl lg:text-7xl">
+              <h2 className="font-heading text-3xl font-extralight leading-[1.05] tracking-tight text-white md:text-5xl lg:text-6xl">
                 {titlePart1}
                 <span className="font-cooper text-[#fff4ec]">
                   {titleHighlight}
@@ -457,11 +321,7 @@ export default function VirtualTourPilot({
         </div>
 
         {/* Indice de scroll */}
-        <div
-          className={`pointer-events-none absolute bottom-10 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2 transition-opacity duration-700 ease-in-out ${
-            revealed ? "opacity-100" : "opacity-0"
-          }`}
-        >
+        <div className="pointer-events-none absolute bottom-10 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2">
           <div className="flex flex-col items-center gap-1 motion-safe:animate-bounce">
             <div className="h-10 w-px bg-gradient-to-b from-white/0 via-white/50 to-white" />
             <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -477,8 +337,7 @@ export default function VirtualTourPilot({
       {/* ═══════ COUCHE 2 — LA VISITE XXL (glisse par-dessus l'orange) ═══════ */}
       <div
         id="la-visite"
-        style={{ transform: revealed ? undefined : "translateY(2.5rem)" }}
-        className="relative z-10 -mt-10 scroll-mt-24 rounded-t-[2rem] bg-white pb-24 pt-16 shadow-[0_-24px_70px_-24px_rgba(10,10,10,0.28)] transition-transform duration-700 ease-in-out motion-reduce:transition-none md:pb-32 md:pt-20 lg:rounded-t-[2.5rem] lg:pb-40 lg:pt-24"
+        className="relative z-10 -mt-10 scroll-mt-24 rounded-t-[2rem] bg-white pb-24 pt-16 shadow-[0_-24px_70px_-24px_rgba(10,10,10,0.28)] md:pb-32 md:pt-20 lg:rounded-t-[2.5rem] lg:pb-40 lg:pt-24"
       >
         <div className="mx-auto w-full max-w-[var(--container)] px-6 sm:px-8">
 

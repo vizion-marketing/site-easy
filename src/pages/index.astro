@@ -317,7 +317,8 @@ const faqItems = (faqDocs ?? [])
   <Specificites />
   <LatestTours client:visible tours={coupDeCoeurTours} />
   <TestimonialsWall client:visible testimonials={displayTestimonials} />
-  <Franchises client:visible franchisees={displayFranchisees} />
+  {/* Section « réseau de franchisés » (drive-to-store) masquée temporairement. */}
+  {/* <Franchises client:visible franchisees={displayFranchisees} /> */}
   <ContactCTA client:visible />
   <FAQ client:visible items={faqItems} />
   <ContactVideoDock client:idle />

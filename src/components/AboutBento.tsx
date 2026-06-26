@@ -101,7 +101,7 @@ export default function AboutBento({
   testimonialRole = "Cofondateurs d'easyVirtual.tours",
   // Portraits placeholder — à remplacer par les vrais portraits des cofondateurs (/public).
   testimonialAvatars = ["https://i.pravatar.cc/96?img=15", "https://i.pravatar.cc/96?img=33"],
-  tallImagePath = "/matterportpro3.webp",
+  tallImagePath = "/camera.png",
   tallTitle = "Nous distribuons la technologie Matterport",
   tallDescription =
     "Matterport, c'est la pointe de la technologie de capture 3D : un jumeau numérique d'un réalisme et d'une précision inégalés, devenu la référence mondiale de la visite virtuelle.",
@@ -113,11 +113,11 @@ export default function AboutBento({
   easyGroupInfo = "easy (easyGroup) est l'écosystème de marques fondé par Sir Stelios Haji-Ioannou — easyJet, easyHotel, easyGym, easyCar… — réunies par une même promesse : rendre le premium simple et accessible à tous.",
   easyGroupDescription = "Non, nous ne sommes pas des imposteurs ! Nous faisons bien partie de la easy family, l'écosystème de marques fondé par Sir Stelios Haji-Ioannou en 1998.",
   easyBrands = ["Jet", "Gym", "Voyage", "Pet", "Hotel", "Car"],
-  engagementTitle = "Un acteur engagé pour la planète",
+  engagementTitle = "Nous sommes fiers de nos engagements",
   engagementDescription =
-    "Chaque visite virtuelle, ce sont des déplacements en moins. Le jumeau numérique permet de tout visiter à distance : moins de trajets, moins de CO₂, sans rien sacrifier à la qualité de la visite.",
+    "Comme chaque marque de la easy family, nous reversons 1,5 % de notre chiffre d'affaires à la Stelios Philanthropic Foundation, la fondation créée par Sir Stelios Haji-Ioannou pour financer des actions caritatives — éducation, lutte contre la pauvreté et aide aux plus fragiles.",
   charityStat = "1,5%",
-  charityLabel = "de notre CA est reversé à la charité",
+  charityLabel = "de notre CA reversé à la Stelios Philanthropic Foundation",
 }: Props) {
   // Piste du marquee : on répète la liste pour remplir la largeur du bloc (au moins ~14
   // vignettes), puis le rendu la duplique (translateX -50%) pour une boucle sans couture.
@@ -145,14 +145,16 @@ export default function AboutBento({
           )}
         </div>
 
-        {/* GRILLE BENTO — 6 tuiles CARRÉES en damier 3 colonnes × 2 rangées
-           (`lg:aspect-square` → colonnes égales donc carrés identiques). Le carré est
-           dimensionné pour le contenu texte ; la photo Matterport se recadre (object-cover).
+        {/* GRILLE BENTO — 6 tuiles en damier 3 colonnes × 2 rangées. Chaque tuile prend la
+           HAUTEUR DE SON CONTENU : pas d'`aspect-square` forcé (qui tronquait/débordait le
+           texte au-delà de 1440px). Le grid garde des rangées homogènes via `align-items:
+           stretch` (défaut) — les tuiles d'une même rangée s'alignent sur la plus haute, et
+           les tuiles-image (object-cover) remplissent l'espace.
            Ordre : photo · ① · ② / ③ · ④ · photo. Bande témoignage pleine largeur juste après. */}
         <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
 
           {/* CASE PHOTO A (placeholder gris — coin haut-gauche, à remplacer par une image) */}
-          <div className="flex min-h-[240px] flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-gray-300 bg-zinc-100 p-8 text-gray-400 lg:min-h-0 min-[1440px]:aspect-square">
+          <div className="flex min-h-[240px] flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-gray-300 bg-zinc-100 p-8 text-gray-400 lg:min-h-[260px]">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-9 w-9" aria-hidden="true">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
               <circle cx="9" cy="9" r="2" />
@@ -169,7 +171,7 @@ export default function AboutBento({
               backgroundImage:
                 "linear-gradient(40deg, #e85c00 0%, #FF6600 52%, #ff8a3d 100%)",
             }}
-            className={`relative z-20 rounded-2xl bg-[#FF6600] p-8 text-white transition-all duration-300 hover:-translate-y-1 motion-reduce:transition-none ${TILE_SHADOW} min-[1440px]:aspect-square`}
+            className={`relative z-20 rounded-2xl bg-[#FF6600] p-8 text-white transition-all duration-300 hover:-translate-y-1 motion-reduce:transition-none ${TILE_SHADOW}`}
           >
             {/* Décorations clippées au rayon de la tuile. Isolées dans cette couche
                `overflow-hidden` pour que la tuile elle-même NE clippe PAS l'infobulle
@@ -270,7 +272,7 @@ export default function AboutBento({
           </div>
 
           {/* TUILE 3 — RÉSEAU FRANCHISE */}
-          <div className={`relative flex flex-col overflow-hidden rounded-2xl bg-white transition-shadow duration-300 ${TILE_SHADOW} min-[1440px]:aspect-square`}>
+          <div className={`relative flex flex-col overflow-hidden rounded-2xl bg-white transition-shadow duration-300 ${TILE_SHADOW}`}>
             {/* Contenu paddé */}
             <div className="flex flex-1 flex-col p-8">
               <StepBadge n={2} variant="orange" className="mb-5" />
@@ -312,7 +314,7 @@ export default function AboutBento({
 
           {/* TUILE 4 — IMAGE MATTERPORT (③) — la photo se recadre dans le carré (object-cover).
              Image en `absolute inset-0` pour qu'elle ne dicte pas la hauteur de la tuile. */}
-          <div className={`group relative min-h-[420px] overflow-hidden rounded-3xl bg-zinc-100 transition-shadow duration-300 ${TILE_SHADOW} min-[1440px]:aspect-square min-[1440px]:min-h-0`}>
+          <div className={`group relative min-h-[420px] overflow-hidden rounded-3xl bg-zinc-100 transition-shadow duration-300 ${TILE_SHADOW}`}>
             <img
               src={tallImagePath}
               alt={`easyvirtual.tours — ${tallTitle}`}
@@ -357,7 +359,7 @@ export default function AboutBento({
           </div>
 
           {/* TUILE 5 — ACTEUR ENGAGÉ (④, éco-responsable / RSE) */}
-          <div className={`flex flex-col rounded-2xl bg-[#fdfaf6] p-8 transition-shadow duration-300 md:p-10 ${TILE_SHADOW} min-[1440px]:aspect-square`}>
+          <div className={`flex flex-col rounded-2xl bg-[#fdfaf6] p-8 transition-shadow duration-300 md:p-10 ${TILE_SHADOW}`}>
             <StepBadge n={4} variant="orange" className="mb-6" />
 
             {/* Gros chiffre-clé RSE — part du CA reversée à la charité (remplace l'ancienne
@@ -388,7 +390,7 @@ export default function AboutBento({
           </div>
 
           {/* CASE PHOTO B (placeholder gris — coin bas-droite, à remplacer par une image) */}
-          <div className="flex min-h-[240px] flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-gray-300 bg-zinc-100 p-8 text-gray-400 lg:min-h-0 min-[1440px]:aspect-square">
+          <div className="flex min-h-[240px] flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-gray-300 bg-zinc-100 p-8 text-gray-400 lg:min-h-[260px]">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-9 w-9" aria-hidden="true">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
               <circle cx="9" cy="9" r="2" />

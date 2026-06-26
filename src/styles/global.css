@@ -144,6 +144,40 @@ body {
   }
 }
 
+/* Taille unifiée des titres de section (h2) — 48px sur desktop. Réduite en dessous
+   pour préserver la lisibilité et éviter les débordements sur mobile/tablette.
+   Règle HORS `@layer` → l'emporte sur les utilitaires Tailwind `text-*` posés sur
+   les h2 (les déclarations non-layered priment sur la couche `utilities`, quelle que
+   soit la spécificité). N'agit que sur la taille ; le `leading-*`/`tracking-*` de
+   chaque composant reste actif. */
+h2 {
+  font-size: 2rem; /* 32px — mobile */
+}
+@media (min-width: 768px) {
+  h2 {
+    font-size: 2.5rem; /* 40px — tablette */
+  }
+}
+@media (min-width: 1024px) {
+  h2 {
+    font-size: 3rem; /* 48px — desktop */
+  }
+}
+
+/* Corps de texte (paragraphes) plafonné à 20px — aucun `<p>` ne dépasse `text-xl`.
+   Même principe de cascade que pour les h2 : règle HORS `@layer`, donc prioritaire
+   sur les utilitaires Tailwind `text-*`. On ne cible QUE les tailles > 20px
+   (`text-2xl` et au-dessus) → les tailles plus petites (text-base, text-sm, text-xs…)
+   restent intactes. Le `leading-*` de chaque composant reste actif (non touché ici). */
+p.text-2xl,
+p.text-3xl,
+p.text-4xl,
+p.text-5xl,
+p.text-6xl,
+p.text-7xl {
+  font-size: 1.25rem; /* 20px */
+}
+
 /* Accessibilité — reset global `prefers-reduced-motion` (WCAG 2.1 — 2.3.3 « Animation
    from Interactions »). Politique de référence : pour les utilisateurs qui demandent
    moins d'animations, on neutralise TOUTES les transitions et animations en les rendant

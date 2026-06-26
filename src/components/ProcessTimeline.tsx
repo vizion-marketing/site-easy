@@ -396,7 +396,7 @@ function SlideStage({ paths, activeKey, onTabChange, path, progress, holdProgres
                     </span>
                     <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-white">Étape {step.id}</span>
                   </span>
-                  <h3 className="font-heading text-4xl font-bold leading-[1.03] tracking-tight text-white md:text-5xl lg:text-6xl">{step.title}</h3>
+                  <h3 className="font-heading text-3xl font-bold leading-[1.03] tracking-tight text-white md:text-4xl lg:text-5xl">{step.title}</h3>
                   <p className="max-w-md text-lg leading-relaxed text-white/85 lg:text-xl">{step.description}</p>
                   {step.logos && step.logos.length > 0 && <LogosRow logos={step.logos} className="mt-1" />}
                   {step.gallery && step.gallery.length > 0 && <FranchiseePile images={step.gallery} className="mt-1" />}
